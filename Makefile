@@ -6,6 +6,13 @@ all: coretemp-exporter.exe
 coretemp-exporter.exe: coretemp-exporter.go
 	echo GOOS=windows GOARCH=amd64 $(GO) build -o $@ $<
 
+run: coretemp-exporter.go
+	$(GO) run coretemp-exporter.go
+
+lint:
+	$(GO) fmt
+	$(GO) vet
+
 test:
 	$(GO) test -race ${SOURCE_DIRS} -cover
 
@@ -22,4 +29,4 @@ clean:
 	rm -f coretemp-exporter.exe
 	rm -f coverage.txt
 
-.PHONY: test clean
+.PHONY: all run test clean

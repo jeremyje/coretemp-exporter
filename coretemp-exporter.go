@@ -17,14 +17,23 @@ package main
 import (
 	"flag"
 	"log"
+	"time"
 
 	"github.com/jeremyje/coretemp-exporter/internal"
+)
+
+var (
+	endpoint = flag.String("endpoint", ":8080", "Endpoint to serve metrics via HTTP.")
+	interval = flag.Duration("interval", time.Second, "Polling interval for temperature information")
 )
 
 func main() {
 	flag.Parse()
 
-	if err := internal.Run(&internal.Args{}); err != nil {
+	if err := internal.Run(&internal.Args{
+		Endpoint: *endpoint,
+		Interval: *interval,
+	}); err != nil {
 		log.Printf("%s", err)
 	}
 }
