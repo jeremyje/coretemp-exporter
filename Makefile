@@ -4,7 +4,7 @@ SOURCE_DIRS=$(shell go list ./... | grep -v '/vendor/')
 all: coretemp-exporter.exe
 
 coretemp-exporter.exe: coretemp-exporter.go
-	echo GOOS=windows GOARCH=amd64 $(GO) build -o $@ $<
+	CGO_ENABLED=1 GOOS=windows GOARCH=amd64 $(GO) build -o $@ $<
 
 run: coretemp-exporter.go
 	$(GO) run coretemp-exporter.go
@@ -29,4 +29,4 @@ clean:
 	rm -f coretemp-exporter.exe
 	rm -f coverage.txt
 
-.PHONY: all run test clean
+.PHONY: all run lint test clean

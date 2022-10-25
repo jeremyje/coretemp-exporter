@@ -17,59 +17,60 @@ package internal
 import (
 	"context"
 	"log"
-	"net"
 	"net/http"
-	"os"
-	"os/signal"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-
 	"github.com/jeremyje/coretempsdk-go"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/exporters/prometheus"
-	"go.opentelemetry.io/otel/metric/instrument"
-	"go.opentelemetry.io/otel/sdk/metric"
 )
 
 type Args struct {
 	Endpoint string
 	Interval time.Duration
+	Log      string
+	Console  bool
 }
 
 func Run(args *Args) error {
+	var handler http.Handler
+	sinks := []HardwareDataSink{}
 	ctx := context.Background()
-	prom := prometheus.New()
+	handler = http.NewServeMux()
 
-	hostname, err := os.Hostname()
-	if err != nil {
-		hostname = os.Getenv("COMPUTERNAME")
+	if args.Endpoint != "" {
+		metrics, promHandler, err := newMetricsSink(ctx)
+		if err != nil {
+			return err
+		}
+		sinks = append(sinks, metrics)
+		handler = promHandler
 	}
 
-	provider := metric.NewMeterProvider(metric.WithReader(prom))
-	meter := provider.Meter("github.com/jeremyje/coretemp-exporter")
-
-	attrs := []attribute.KeyValue{
-		attribute.Key("hostname").String(hostname),
+	if args.Console {
+		sinks = append(sinks, &consoleSink{})
 	}
 
-	cpuCoreTemperature, err := meter.AsyncFloat64().Gauge("cpu_core_temperature", instrument.WithDescription("Temperature of CPU Cores"), instrument.WithUnit("C"))
-	if err != nil {
-		return err
+	if args.Log != "" {
+		fs, err := newFileSink(args.Log)
+		if err != nil {
+			return err
+		}
+
+		sinks = append(sinks, fs)
 	}
-	cpuInfoPollCount, err := meter.SyncFloat64().Counter("cpu_core_poll", instrument.WithDescription("Temperature of CPU Cores"))
-	if err != nil {
-		return err
-	}
+
+	ms := newMultiSink(sinks...)
 
 	ticker := time.NewTicker(args.Interval)
 	done := make(chan bool)
 	defer func() {
+		ticker.Stop()
 		done <- true
 		close(done)
 	}()
 
 	go func() {
+		ctx := context.Background()
+
 		for {
 			select {
 			case <-done:
@@ -80,40 +81,12 @@ func Run(args *Args) error {
 					log.Printf("ERROR: %s", err)
 				}
 
-				curAttrs := append(attrs, attribute.String("model", info.CPUName))
-
-				cpuCoreTemperature.Observe(ctx, float64(info.TemperatureCelcius[0]), curAttrs...)
-				cpuInfoPollCount.Add(ctx, 1, curAttrs...)
-				prom.ForceFlush(ctx)
+				ms.Observe(ctx, info)
 			}
 		}
 	}()
 
-	return serve(ctx, args, promhttp.Handler())
-}
-
-func serve(ctx context.Context, args *Args, h http.Handler) error {
-	addr := args.Endpoint
-	s := &http.Server{
-		Addr:    addr,
-		Handler: h,
-	}
-
-	lis, err := net.Listen("tcp", addr)
-	if err != nil {
-		return err
-	}
-	errCh := make(chan error)
-	log.Printf("Serving on %s", addr)
-	go func() {
-		errCh <- s.Serve(lis)
-	}()
-
-	stopCtx, _ := signal.NotifyContext(ctx, os.Interrupt)
-	select {
-	case <-errCh:
-	case <-stopCtx.Done():
-		lis.Close()
-	}
-	return nil
+	waitFunc, _, err := serveAsync(ctx, args, handler)
+	waitFunc()
+	return err
 }
