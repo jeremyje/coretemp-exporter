@@ -50,9 +50,19 @@ type metricsSink struct {
 	CPUThermalJunctionMax asyncfloat64.Gauge
 	CPUInfoPollCount      syncfloat64.Counter
 	CPUDetail             asyncfloat64.Gauge
+	lastValue             *coretempsdk.CoreTempInfo
+}
+
+func (m *metricsSink) ObserveAsync(ctx context.Context) {
+	m.Observe(ctx, m.lastValue)
 }
 
 func (m *metricsSink) Observe(ctx context.Context, info *coretempsdk.CoreTempInfo) {
+	if info == nil {
+		return
+	}
+
+	m.lastValue = info
 	attrs := getDefaultAttributes()
 	curAttrs := append(attrs, attribute.String("model", info.CPUName))
 
@@ -119,11 +129,17 @@ func newMetrics(meter metric.Meter) (*metricsSink, error) {
 		return nil, err
 	}
 
-	return &metricsSink{
+	sink := &metricsSink{
 		CPUCoreTemperature:    cpuCoreTemperature,
 		CPUCoreLoad:           cpuCoreLoad,
 		CPUThermalJunctionMax: cpuThermalJunctionMax,
 		CPUInfoPollCount:      cpuInfoPollCount,
 		CPUDetail:             cpuDetail,
-	}, nil
+	}
+
+	meter.RegisterCallback([]instrument.Asynchronous{cpuCoreTemperature, cpuCoreLoad, cpuThermalJunctionMax, cpuDetail}, func(ctx context.Context) {
+		sink.ObserveAsync(ctx)
+	})
+
+	return sink, nil
 }
