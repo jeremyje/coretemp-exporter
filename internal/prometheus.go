@@ -49,7 +49,8 @@ type metricsSink struct {
 	CPUCoreLoad           asyncint64.Gauge
 	CPUThermalJunctionMax asyncfloat64.Gauge
 	CPUInfoPollCount      syncfloat64.Counter
-	CPUDetail             asyncfloat64.Gauge
+	CPUSpeed              asyncfloat64.Gauge
+	CPUMultiplier         asyncfloat64.Gauge
 	lastValue             *coretempsdk.CoreTempInfo
 }
 
@@ -71,12 +72,19 @@ func (m *metricsSink) Observe(ctx context.Context, info *coretempsdk.CoreTempInf
 	}
 	m.CPUInfoPollCount.Add(ctx, 1, curAttrs...)
 
-	m.CPUDetail.Observe(ctx, info.CPUSpeed, append(
+	m.CPUSpeed.Observe(ctx, info.CPUSpeed*1000*1000, append(
 		curAttrs,
 		attribute.Int("cpu_count", info.CPUCount),
 		attribute.Int("core_count", info.CoreCount),
 		attribute.Float64("fsb_speed", info.FSBSpeed),
-		attribute.Int("fsb_multiplier", int(info.Multiplier)),
+		attribute.Int("voltage", int(info.VID)),
+	)...)
+
+	m.CPUMultiplier.Observe(ctx, info.Multiplier, append(
+		curAttrs,
+		attribute.Int("cpu_count", info.CPUCount),
+		attribute.Int("core_count", info.CoreCount),
+		attribute.Float64("fsb_speed", info.FSBSpeed),
 		attribute.Int("voltage", int(info.VID)),
 	)...)
 
@@ -124,7 +132,11 @@ func newMetrics(meter metric.Meter) (*metricsSink, error) {
 	if err != nil {
 		return nil, err
 	}
-	cpuDetail, err := meter.AsyncFloat64().Gauge("cpu_detail", instrument.WithDescription("Details of the CPU."))
+	cpuSpeed, err := meter.AsyncFloat64().Gauge("cpu_speed", instrument.WithDescription("CPU Core Speeds"))
+	if err != nil {
+		return nil, err
+	}
+	cpuMultiplier, err := meter.AsyncFloat64().Gauge("cpu_multiplier", instrument.WithDescription("FSB Multiplier for the CPU."))
 	if err != nil {
 		return nil, err
 	}
@@ -134,10 +146,11 @@ func newMetrics(meter metric.Meter) (*metricsSink, error) {
 		CPUCoreLoad:           cpuCoreLoad,
 		CPUThermalJunctionMax: cpuThermalJunctionMax,
 		CPUInfoPollCount:      cpuInfoPollCount,
-		CPUDetail:             cpuDetail,
+		CPUSpeed:              cpuSpeed,
+		CPUMultiplier:         cpuMultiplier,
 	}
 
-	meter.RegisterCallback([]instrument.Asynchronous{cpuCoreTemperature, cpuCoreLoad, cpuThermalJunctionMax, cpuDetail}, func(ctx context.Context) {
+	meter.RegisterCallback([]instrument.Asynchronous{cpuCoreTemperature, cpuCoreLoad, cpuThermalJunctionMax, cpuSpeed, cpuMultiplier}, func(ctx context.Context) {
 		sink.ObserveAsync(ctx)
 	})
 

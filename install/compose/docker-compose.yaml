@@ -1,0 +1,80 @@
+# Copyright 2022 Jeremy Edwards
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+version: '3.9'
+services:
+  prometheus:
+    image: prom/prometheus
+    hostname: prometheus
+    networks:
+      - coretemp-net
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yaml'
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus:/etc/prometheus:ro
+      - prom_data:/prometheus
+  promtail:
+    image: grafana/promtail:master
+    hostname: promtail
+    networks:
+      - coretemp-net
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - /var/log:/var/log
+  grafana:
+    image: grafana/grafana
+    hostname: grafana
+    networks:
+      - coretemp-net
+    ports:
+      - 3000:3000
+    environment:
+      - GF_SECURITY_ADMIN_USER=root
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_LOG_LEVEL=warning
+    volumes:
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    hostname: jaeger
+    restart: always
+    networks:
+      - coretemp-net
+    ports:
+      - "6831:6831/udp"
+      - 16686:16686
+      - 14268:14268
+    environment:
+      - METRICS_STORAGE_TYPE=prometheus
+      - PROMETHEUS_SERVER_URL=http://prometheus:9090
+  jaeger-query:
+    image: jaegertracing/jaeger-query:latest
+    hostname: jaeger-query
+    restart: always
+    networks:
+      - coretemp-net
+    ports:
+      - 16685:16685
+      - 16687:16687
+    environment:
+      - METRICS_STORAGE_TYPE=prometheus
+      - PROMETHEUS_SERVER_URL=http://prometheus:9090
+volumes:
+  prom_data:
+networks:
+  coretemp-net:
+    driver: host
