@@ -52,5 +52,23 @@ jobs:
         verbose: true # optional (default = false)
 
     - name: Binaries
-      if: ${{ github.ref != 'refs/heads/main' }}
-      run: make binaries -j20
+      run: make all
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        generate_release_notes: true
+        draft: true
+        prerelease: false
+        files: |
+          LICENSE
+          coretemp-exporter.exe
+    - name: Publish Application
+      uses: actions/upload-artifact@v3
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        name: release.tar.gz
+        path: |
+          LICENSE
+          coretemp-exporter.exe

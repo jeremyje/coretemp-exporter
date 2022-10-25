@@ -25,6 +25,8 @@ import (
 var (
 	endpoint = flag.String("endpoint", ":8080", "Endpoint to serve metrics via HTTP.")
 	interval = flag.Duration("interval", time.Second, "Polling interval for temperature information")
+	logFile  = flag.String("log", "", "JSON logfile")
+	console  = flag.Bool("console", true, "Indicates that records should be printed to console.")
 )
 
 func main() {
@@ -33,6 +35,8 @@ func main() {
 	if err := internal.Run(&internal.Args{
 		Endpoint: *endpoint,
 		Interval: *interval,
+		Log:      *logFile,
+		Console:  *console,
 	}); err != nil {
 		log.Printf("%s", err)
 	}
