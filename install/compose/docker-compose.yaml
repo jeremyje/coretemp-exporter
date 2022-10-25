@@ -61,18 +61,6 @@ services:
     environment:
       - METRICS_STORAGE_TYPE=prometheus
       - PROMETHEUS_SERVER_URL=http://prometheus:9090
-  jaeger-query:
-    image: jaegertracing/jaeger-query:latest
-    hostname: jaeger-query
-    restart: always
-    networks:
-      - coretemp-net
-    ports:
-      - 16685:16685
-      - 16687:16687
-    environment:
-      - METRICS_STORAGE_TYPE=prometheus
-      - PROMETHEUS_SERVER_URL=http://prometheus:9090
 volumes:
   prom_data:
 networks:

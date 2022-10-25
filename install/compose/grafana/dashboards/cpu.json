@@ -24,7 +24,6 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 5,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -254,8 +253,12 @@
                 "value": null
               },
               {
+                "color": "#EAB839",
+                "value": 3000000000
+              },
+              {
                 "color": "red",
-                "value": 80
+                "value": 5000000000
               }
             ]
           },
@@ -290,7 +293,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "builder",
-          "expr": "cpu_detail",
+          "expr": "cpu_speed",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -300,6 +303,7 @@
       "type": "gauge"
     }
   ],
+  "refresh": "5s",
   "schemaVersion": 37,
   "style": "dark",
   "tags": [],
@@ -307,13 +311,13 @@
     "list": []
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "CPU",
   "uid": "RwtPEDHVz",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }
