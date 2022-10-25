@@ -50,8 +50,5 @@ func (s *fileSink) Observe(ctx context.Context, info *coretempsdk.CoreTempInfo) 
 		if _, err := s.fp.Write(newlineAsByte); err != nil {
 			log.Printf("ERROR: %s", err)
 		}
-		if err := s.fp.Sync(); err != nil {
-			log.Printf("ERROR: %s", err)
-		}
 	}
 }
