@@ -65,4 +65,3 @@ volumes:
   prom_data:
 networks:
   coretemp-net:
-    driver: host

@@ -19,7 +19,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/jeremyje/coretempsdk-go"
+	"github.com/jeremyje/coretemp-exporter/drivers/common"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -51,14 +51,14 @@ type metricsSink struct {
 	CPUInfoPollCount      syncfloat64.Counter
 	CPUSpeed              asyncfloat64.Gauge
 	CPUMultiplier         asyncfloat64.Gauge
-	lastValue             *coretempsdk.CoreTempInfo
+	lastValue             *common.HardwareInfo
 }
 
 func (m *metricsSink) ObserveAsync(ctx context.Context) {
 	m.Observe(ctx, m.lastValue)
 }
 
-func (m *metricsSink) Observe(ctx context.Context, info *coretempsdk.CoreTempInfo) {
+func (m *metricsSink) Observe(ctx context.Context, info *common.HardwareInfo) {
 	if info == nil {
 		return
 	}

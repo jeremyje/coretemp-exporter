@@ -12,43 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package internal
+//go:build !windows
+// +build !windows
+
+package coretempsdk
 
 import (
-	"context"
-	"encoding/json"
-	"log"
-	"os"
+	"errors"
 
 	"github.com/jeremyje/coretemp-exporter/drivers/common"
 )
 
 var (
-	newlineAsByte []byte = []byte("\n")
+	errNotSupported = errors.New("not supported, only runs on windows")
 )
 
-type fileSink struct {
-	fp *os.File
+type coreTempSDKDriver struct {
 }
 
-func newFileSink(name string) (*fileSink, error) {
-	fp, err := os.OpenFile(name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return nil, err
-	}
-	return &fileSink{
-		fp: fp,
-	}, nil
+func (d *coreTempSDKDriver) Init() error {
+	return errNotSupported
 }
 
-func (s *fileSink) Observe(ctx context.Context, info *common.HardwareInfo) {
-	line, err := json.Marshal(info)
-	if err == nil {
-		if _, err := s.fp.Write(line); err != nil {
-			log.Printf("ERROR: %s", err)
-		}
-		if _, err := s.fp.Write(newlineAsByte); err != nil {
-			log.Printf("ERROR: %s", err)
-		}
-	}
+func (d *coreTempSDKDriver) Get() (*common.HardwareInfo, error) {
+	return nil, errNotSupported
 }

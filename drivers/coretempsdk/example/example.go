@@ -12,29 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package internal
+// Package main is an example for using the Core Temp SDK.
+package main
 
 import (
-	"context"
+	"encoding/json"
+	"log"
 
-	"github.com/jeremyje/coretemp-exporter/drivers/common"
+	"github.com/jeremyje/coretemp-exporter/drivers/coretempsdk"
 )
 
-type HardwareDataSink interface {
-	Observe(ctx context.Context, info *common.HardwareInfo)
-}
-
-type multiSink struct {
-	sinks []HardwareDataSink
-}
-
-func (m *multiSink) Observe(ctx context.Context, info *common.HardwareInfo) {
-	for _, s := range m.sinks {
-		s.Observe(ctx, info)
+func main() {
+	d := coretempsdk.New()
+	info, err := d.Get()
+	if err != nil {
+		log.Printf("ERROR: %s", err)
+		return
 	}
-}
-func newMultiSink(s ...HardwareDataSink) *multiSink {
-	return &multiSink{
-		sinks: s,
+	log.Printf("CPU: %s", info.CPUName)
+	log.Printf("Temperatures: %v", info.TemperatureCelcius)
+	data, err := json.Marshal(info)
+	if err != nil {
+		log.Printf("%+v", info)
+	} else {
+		log.Printf("%s", data)
 	}
 }

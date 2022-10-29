@@ -12,29 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package internal
+//go:build windows
+// +build windows
 
-import (
-	"context"
+package coretempsdk
 
-	"github.com/jeremyje/coretemp-exporter/drivers/common"
-)
+import "testing"
 
-type HardwareDataSink interface {
-	Observe(ctx context.Context, info *common.HardwareInfo)
-}
-
-type multiSink struct {
-	sinks []HardwareDataSink
-}
-
-func (m *multiSink) Observe(ctx context.Context, info *common.HardwareInfo) {
-	for _, s := range m.sinks {
-		s.Observe(ctx, info)
+func TestGetCoreTempInfo(t *testing.T) {
+	info, err := getCoreTempInfo()
+	if err != nil {
+		t.Fatal(err)
 	}
+	t.Logf("%+v", info)
 }
-func newMultiSink(s ...HardwareDataSink) *multiSink {
-	return &multiSink{
-		sinks: s,
+
+func TestGetCoreTempInfoAlt(t *testing.T) {
+	info, err := getCoreTempInfoAlt()
+	if err != nil {
+		t.Fatal(err)
 	}
+	t.Logf("%+v", info)
 }
