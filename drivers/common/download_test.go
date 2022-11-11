@@ -12,35 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package coretempsdk
+package common
 
 import (
 	_ "embed"
-	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
-func ExampleNew() {
-	info, err := New().Get()
+func TestDownloadFromZip(t *testing.T) {
+	zipFile, err := DownloadFile("https://www.alcpu.com/CoreTemp/main_data/CoreTempSDK.zip")
 	if err != nil {
-		fmt.Printf("ERROR: %s", err)
+		t.Fatal(err)
 	}
-	fmt.Printf("GetCoreTempInfo: %+v", info)
-}
 
-func TestNew(t *testing.T) {
-	driver := New()
-	if driver == nil {
-		t.Error("driver should not be nil")
+	dir := t.TempDir()
+	dllPath := filepath.Join(dir, "GetCoreTempInfo.dll")
+	if err := UnzipFile(zipFile, "GetCoreTempInfo.dll", dllPath); err != nil {
+		t.Fatal(err)
 	}
-}
 
-func TestGet(t *testing.T) {
-	info, err := New().Get()
-	if err != nil && info != nil {
-		t.Error("HardwareInfo and error should NOT both be set at the same time.")
+	stat, err := os.Stat(dllPath)
+	if err != nil {
+		t.Fatal(err)
 	}
-	if err == nil && info == nil {
-		t.Error("HardwareInfo and error should NOT both be nil")
+	if stat.Size() < 5000 {
+		t.Errorf("GetCoreTempInfo.dll is not at least 5KB, size= %d", stat.Size())
 	}
 }

@@ -44,6 +44,5 @@ type HardwareInfo struct {
 }
 
 type Driver interface {
-	Init() error
 	Get() (*HardwareInfo, error)
 }

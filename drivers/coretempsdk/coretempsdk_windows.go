@@ -62,13 +62,14 @@ type coreTempSharedDataEx struct {
 
 var (
 	globalFnGetCoreTempInfo *windows.LazyProc
-	globalLock              sync.Mutex
+	globalLock              sync.RWMutex
 )
 
 const (
-	dllNameGetCoreTempInfoDLL      = "GetCoreTempInfo.dll"
-	dllFuncfnGetCoreTempInfoAlt    = "fnGetCoreTempInfoAlt"
-	dllSourceURIGetCoreTempInfoDLL = "https://www.alcpu.com/CoreTemp/developers.html"
+	dllNameGetCoreTempInfoDLL            = "GetCoreTempInfo.dll"
+	dllFuncfnGetCoreTempInfoAlt          = "fnGetCoreTempInfoAlt"
+	dllURIGetCoreTempInfoDLLDownloadPage = "https://www.alcpu.com/CoreTemp/developers.html"
+	dllURIGetCoreTempInfoDLL             = "https://www.alcpu.com/CoreTemp/main_data/CoreTempSDK.zip"
 )
 
 func getCoreTempInfo() (*common.HardwareInfo, error) {
@@ -145,7 +146,7 @@ func wrapDLLError(err error) error {
 		dir = "."
 	}
 	return coreTempSDKError{
-		msg: fmt.Sprintf("Make sure that '%s' is in directory '%s'. And the version is at least 1.2.0.0. You can download the DLL from '%s'. Error= %s", dllNameGetCoreTempInfoDLL, dir, dllSourceURIGetCoreTempInfoDLL, err.Error()),
+		msg: fmt.Sprintf("Make sure that '%s' is in directory '%s'. And the version is at least 1.2.0.0. You can download the DLL from '%s'. Error= %s", dllNameGetCoreTempInfoDLL, dir, dllURIGetCoreTempInfoDLLDownloadPage, err.Error()),
 		err: err,
 	}
 }
@@ -158,6 +159,14 @@ func wrapCallError(err error) error {
 }
 
 func getFnGetCoreTempInfo() (*windows.LazyProc, error) {
+	globalLock.RLock()
+	dllLoaded := globalFnGetCoreTempInfo == nil
+	globalLock.RUnlock()
+
+	if !dllLoaded {
+		ensureCoreTempDLL()
+	}
+
 	globalLock.Lock()
 	defer globalLock.Unlock()
 
@@ -188,11 +197,26 @@ func getCoreTempInfoAlt() (*coreTempSharedDataEx, error) {
 	return rawInfo, nil
 }
 
-type coreTempSDKDriver struct {
+func ensureCoreTempDLL() error {
+	stat, err := os.Stat(dllNameGetCoreTempInfoDLL)
+	if err == nil {
+		if stat.Size() > 5000 {
+			return nil
+		}
+	}
+	zipData, err := common.DownloadFile(dllURIGetCoreTempInfoDLL)
+	if err != nil {
+		return fmt.Errorf("cannot download '%s', err= %w", dllURIGetCoreTempInfoDLL, err)
+	}
+	globalLock.Lock()
+	defer globalLock.Unlock()
+	if err := common.UnzipFile(zipData, dllNameGetCoreTempInfoDLL, dllNameGetCoreTempInfoDLL); err != nil {
+		return fmt.Errorf("cannot extract '%s' from zip file '%s', err= %w", dllNameGetCoreTempInfoDLL, dllURIGetCoreTempInfoDLL, err)
+	}
+	return nil
 }
 
-func (d *coreTempSDKDriver) Init() error {
-	return nil
+type coreTempSDKDriver struct {
 }
 
 func (d *coreTempSDKDriver) Get() (*common.HardwareInfo, error) {

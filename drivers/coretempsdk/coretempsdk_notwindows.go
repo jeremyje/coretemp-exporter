@@ -30,10 +30,6 @@ var (
 type coreTempSDKDriver struct {
 }
 
-func (d *coreTempSDKDriver) Init() error {
-	return errNotSupported
-}
-
 func (d *coreTempSDKDriver) Get() (*common.HardwareInfo, error) {
 	return nil, errNotSupported
 }
