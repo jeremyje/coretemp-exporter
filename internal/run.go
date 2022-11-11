@@ -20,7 +20,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/jeremyje/coretempsdk-go"
+	"github.com/jeremyje/coretemp-exporter/drivers/coretempsdk"
 )
 
 type Args struct {
@@ -71,12 +71,13 @@ func Run(args *Args) error {
 	go func() {
 		ctx := context.Background()
 
+		d := coretempsdk.New()
 		for {
 			select {
 			case <-done:
 				return
 			case <-ticker.C:
-				info, err := coretempsdk.GetCoreTempInfo()
+				info, err := d.Get()
 				if err != nil {
 					log.Printf("ERROR: %s", err)
 				}

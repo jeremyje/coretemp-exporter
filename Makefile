@@ -1,17 +1,20 @@
 GO = go
 SOURCE_DIRS=$(shell go list ./... | grep -v '/vendor/')
 
-all: coretemp-exporter.exe
+all: coretemp-exporter coretemp-exporter.exe
 
-coretemp-exporter.exe: coretemp-exporter.go
+coretemp-exporter: cmd/coretemp-exporter/coretemp-exporter.go
+	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 $(GO) build -o $@ $<
+
+coretemp-exporter.exe: cmd/coretemp-exporter/coretemp-exporter.go
 	CGO_ENABLED=1 GOOS=windows GOARCH=amd64 $(GO) build -o $@ $<
 
-run: coretemp-exporter.go
-	$(GO) run coretemp-exporter.go -log=cputemps.log
+run: cmd/coretemp-exporter/coretemp-exporter.go
+	$(GO) run cmd/coretemp-exporter/coretemp-exporter.go -log=cputemps.log
 
 lint:
-	$(GO) fmt
-	$(GO) vet
+	$(GO) fmt ./...
+	$(GO) vet ./...
 
 test:
 	$(GO) test -race ${SOURCE_DIRS} -cover
@@ -26,6 +29,7 @@ coverage.txt:
 	done
 
 clean:
+	rm -f coretemp-exporter
 	rm -f coretemp-exporter.exe
 	rm -f coverage.txt
 

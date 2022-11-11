@@ -17,3 +17,5 @@
 .vscode/
 
 *.log
+
+/coretemp-exporter

@@ -18,12 +18,12 @@ import (
 	"context"
 	"log"
 
-	"github.com/jeremyje/coretempsdk-go"
+	"github.com/jeremyje/coretemp-exporter/drivers/common"
 )
 
 type consoleSink struct {
 }
 
-func (m *consoleSink) Observe(ctx context.Context, info *coretempsdk.CoreTempInfo) {
+func (m *consoleSink) Observe(ctx context.Context, info *common.HardwareInfo) {
 	log.Printf("%+v\n", info)
 }

@@ -12,29 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package internal
+// Package coretempsdk is a Go library for interacting with GetCoreTempInfo.dll.
+// You can get the DLL from: https://www.alcpu.com/CoreTemp/main_data/CoreTempSDK.zip
+package coretempsdk
 
-import (
-	"context"
+import "github.com/jeremyje/coretemp-exporter/drivers/common"
 
-	"github.com/jeremyje/coretemp-exporter/drivers/common"
-)
-
-type HardwareDataSink interface {
-	Observe(ctx context.Context, info *common.HardwareInfo)
-}
-
-type multiSink struct {
-	sinks []HardwareDataSink
-}
-
-func (m *multiSink) Observe(ctx context.Context, info *common.HardwareInfo) {
-	for _, s := range m.sinks {
-		s.Observe(ctx, info)
-	}
-}
-func newMultiSink(s ...HardwareDataSink) *multiSink {
-	return &multiSink{
-		sinks: s,
-	}
+func New() common.Driver {
+	return &coreTempSDKDriver{}
 }
