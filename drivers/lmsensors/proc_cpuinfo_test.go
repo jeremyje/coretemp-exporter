@@ -16,29 +16,22 @@ package lmsensors
 
 import (
 	_ "embed"
-	"fmt"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 var (
-	//go:embed testdata/sensors.json
-	sensorsJSON []byte
+	//go:embed testdata/proc_cpuinfo.txt
+	cpuInfoTXT []byte
 )
 
-func ExampleNew() {
-	info, err := New().Get()
-	if err != nil {
-		fmt.Printf("ERROR: %s", err)
-	}
-	fmt.Printf("GetCoreTempInfo: %+v", info)
-}
-
-func TestGet(t *testing.T) {
-	data, err := fromJSON(sensorsJSON)
+func TestParseCpuInfo(t *testing.T) {
+	data, err := parseCpuInfo(cpuInfoTXT)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(data.M) == 0 {
-		t.Error("result was empty")
+	if diff := cmp.Diff("Intel(R) Celeron(R) CPU  N3050  @ 1.60GHz", data.CPUName); diff != "" {
+		t.Errorf(".CPUName mismatch (-want +got):\n%s", diff)
 	}
 }

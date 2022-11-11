@@ -1,0 +1,37 @@
+{
+  "iwlwifi_1-virtual-0":{
+     "Adapter": "Virtual device",
+     "temp1":{
+ERROR: Can't get value of subfeature temp1_input: Can't read
+
+     }
+  },
+  "acpitz-acpi-0":{
+     "Adapter": "ACPI interface",
+     "temp1":{
+        "temp1_input": 44.000,
+        "temp1_crit": 95.000
+     }
+  },
+  "coretemp-isa-0000":{
+     "Adapter": "ISA adapter",
+     "Package id 0":{
+        "temp1_input": 45.000,
+        "temp1_max": 105.000,
+        "temp1_crit": 105.000,
+        "temp1_crit_alarm": 0.000
+     },
+     "Core 0":{
+        "temp2_input": 45.000,
+        "temp2_max": 105.000,
+        "temp2_crit": 105.000,
+        "temp2_crit_alarm": 0.000
+     },
+     "Core 1":{
+        "temp3_input": 45.000,
+        "temp3_max": 105.000,
+        "temp3_crit": 105.000,
+        "temp3_crit_alarm": 0.000
+     }
+  }
+}

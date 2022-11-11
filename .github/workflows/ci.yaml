@@ -52,7 +52,7 @@ jobs:
         verbose: true # optional (default = false)
 
     - name: Binaries
-      run: make all
+      run: make all -j$(nproc)
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
@@ -63,7 +63,8 @@ jobs:
         prerelease: false
         files: |
           LICENSE
-          coretemp-exporter.exe
+          build/bin/linux_amd64/coretemp-exporter
+          build/bin/windows_amd64/coretemp-exporter.exe
     - name: Publish Application
       uses: actions/upload-artifact@v3
       if: startsWith(github.ref, 'refs/tags/')
