@@ -20,7 +20,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/jeremyje/coretemp-exporter/drivers/coretempsdk"
+	"github.com/jeremyje/coretemp-exporter/drivers"
 )
 
 type Args struct {
@@ -71,7 +71,7 @@ func Run(args *Args) error {
 	go func() {
 		ctx := context.Background()
 
-		d := coretempsdk.New()
+		d := drivers.New()
 		for {
 			select {
 			case <-done:

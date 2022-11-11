@@ -222,3 +222,7 @@ type coreTempSDKDriver struct {
 func (d *coreTempSDKDriver) Get() (*common.HardwareInfo, error) {
 	return getCoreTempInfo()
 }
+
+func newDriver() common.Driver {
+	return &coreTempSDKDriver{}
+}

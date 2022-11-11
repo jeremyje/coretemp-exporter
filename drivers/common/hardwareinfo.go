@@ -46,3 +46,17 @@ type HardwareInfo struct {
 type Driver interface {
 	Get() (*HardwareInfo, error)
 }
+
+func NotSupported(err error) Driver {
+	return &notSupportedDriver{
+		err: err,
+	}
+}
+
+type notSupportedDriver struct {
+	err error
+}
+
+func (n *notSupportedDriver) Get() (*HardwareInfo, error) {
+	return nil, n.err
+}
