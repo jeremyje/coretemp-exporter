@@ -12,12 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package coretempsdk is a Go library for interacting with GetCoreTempInfo.dll.
-// You can get the DLL from: https://www.alcpu.com/CoreTemp/main_data/CoreTempSDK.zip
-package coretempsdk
+//go:build !linux
+// +build !linux
 
-import "github.com/jeremyje/coretemp-exporter/drivers/common"
+package lmsensors
 
-func New() common.Driver {
-	return newDriver()
+import (
+	"errors"
+
+	"github.com/jeremyje/coretemp-exporter/drivers/common"
+)
+
+var (
+	errNotSupported = errors.New("not supported, only runs on linux")
+)
+
+func newDriver() common.Driver {
+	return common.NotSupported(errNotSupported)
 }

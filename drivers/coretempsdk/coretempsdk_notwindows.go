@@ -27,9 +27,6 @@ var (
 	errNotSupported = errors.New("not supported, only runs on windows")
 )
 
-type coreTempSDKDriver struct {
-}
-
-func (d *coreTempSDKDriver) Get() (*common.HardwareInfo, error) {
-	return nil, errNotSupported
+func newDriver() common.Driver {
+	return common.NotSupported(errNotSupported)
 }

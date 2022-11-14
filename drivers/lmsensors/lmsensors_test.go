@@ -12,32 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package lmsensors
 
 import (
-	"flag"
-	"log"
-	"time"
-
-	"github.com/jeremyje/coretemp-exporter/internal"
+	_ "embed"
+	"fmt"
+	"testing"
 )
 
 var (
-	endpoint = flag.String("endpoint", ":8081", "Endpoint to serve metrics via HTTP.")
-	interval = flag.Duration("interval", time.Second, "Polling interval for temperature information")
-	logFile  = flag.String("log", "", "JSON logfile")
-	console  = flag.Bool("console", true, "Indicates that records should be printed to console.")
+	//go:embed testdata/example.json
+	exampleJSON []byte
 )
 
-func main() {
-	flag.Parse()
+func ExampleNew() {
+	info, err := New().Get()
+	if err != nil {
+		fmt.Printf("ERROR: %s", err)
+	}
+	fmt.Printf("GetCoreTempInfo: %+v", info)
+}
 
-	if err := internal.Run(&internal.Args{
-		Endpoint: *endpoint,
-		Interval: *interval,
-		Log:      *logFile,
-		Console:  *console,
-	}); err != nil {
-		log.Printf("%s", err)
+func TestGet(t *testing.T) {
+	data, err := fromJSON(exampleJSON)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(data.M) == 0 {
+		t.Error("result was empty")
 	}
 }
