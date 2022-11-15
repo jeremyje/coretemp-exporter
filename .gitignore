@@ -20,3 +20,4 @@
 
 /coretemp-exporter
 build/
+*.ndjson

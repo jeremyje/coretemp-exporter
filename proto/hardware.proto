@@ -19,23 +19,38 @@ option go_package = "github.com/jeremyje/coretemp-exporter/proto";
 
 import "google/protobuf/timestamp.proto";
 
-message CpuDeviceInfo {
+// CpuDeviceMetrics holds details about CPU utilization and temperatures.
+message CpuDeviceMetrics {
+  // Load as a percentage [0-100].
   repeated int32 load = 1;
-  int32 num_cores = 2;
-  double frequency = 3;
-  double fsb_frequency = 4;
+  // Temperature is the temperature of each core in celcius.
+  repeated double temperature = 2;
+  // NumCores is the total number of cores across all CPUs on the machine.
+  int32 num_cores = 3;
+  // Frequency is the clock frequency (Hz) of the CPU.
+  double frequency_mhz = 4;
+  // FSBFrequency is the clock frequency of the front side bus.
+  double fsb_frequency_mhz = 5;
 }
 
-message DeviceInfo {
+// DeviceMetrics holds the health metrics (temperature and other measurements) of the device.
+message DeviceMetrics {
+  // Name of the device.
   string name = 1;
-  double temperature = 2;
-
-  CpuDeviceInfo cpu = 3;
+  // Kind of device that is described.
+  string kind = 2;
+  // Temperature of the device in celcius if available.
+  double temperature = 3;
+  // CPU is populated if the device is a CPU.
+  CpuDeviceMetrics cpu = 4;
 }
 
-message MachineInfo {
+// MachineMetrics holds a list of devices that can be instrumented for health.
+message MachineMetrics {
+  // Name is the hostname of the machine.
   string name = 1;
-  repeated DeviceInfo device = 2;
+  // Device is a list of all the instrumented devices on the machine.
+  repeated DeviceMetrics device = 2;
+  // Timestamp of the sample of metrics.
   .google.protobuf.Timestamp timestamp = 3;
 }
-

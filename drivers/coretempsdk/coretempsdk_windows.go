@@ -22,11 +22,12 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"time"
 	"unsafe"
 
 	"github.com/jeremyje/coretemp-exporter/drivers/common"
+	pb "github.com/jeremyje/coretemp-exporter/proto"
 	"golang.org/x/sys/windows"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // https://www.alcpu.com/CoreTemp/developers.html
@@ -72,7 +73,7 @@ const (
 	dllURIGetCoreTempInfoDLL             = "https://www.alcpu.com/CoreTemp/main_data/CoreTempSDK.zip"
 )
 
-func getCoreTempInfo() (*common.HardwareInfo, error) {
+func getCoreTempInfo() (*pb.MachineMetrics, error) {
 	rawInfo, err := getCoreTempInfoAlt()
 	if err != nil {
 		return nil, err
@@ -88,18 +89,23 @@ func getCoreTempInfo() (*common.HardwareInfo, error) {
 		}
 	}
 
-	return &common.HardwareInfo{
-		Load:               intList(rawInfo.uiLoad[:], coreCount),
-		TJMax:              float64List(rawInfo.uiTjMax[:], int(rawInfo.uiCPUCnt)),
-		CoreCount:          coreCount,
-		CPUCount:           int(rawInfo.uiCPUCnt),
-		TemperatureCelcius: temps,
-		VID:                float64(rawInfo.fVID),
-		CPUSpeed:           float64(rawInfo.fCPUSpeed),
-		FSBSpeed:           float64(rawInfo.fFSBSpeed),
-		Multiplier:         float64(rawInfo.fMultiplier),
-		CPUName:            cleanString(string(rawInfo.sCPUName[:])),
-		Timestamp:          time.Now(),
+	return &pb.MachineMetrics{
+		Name:      common.Hostname(),
+		Timestamp: timestamppb.Now(),
+		Device: []*pb.DeviceMetrics{
+			&pb.DeviceMetrics{
+				Name:        cleanString(string(rawInfo.sCPUName[:])),
+				Kind:        "cpu",
+				Temperature: common.Average(temps),
+				Cpu: &pb.CpuDeviceMetrics{
+					Load:            int32List(rawInfo.uiLoad[:], coreCount),
+					Temperature:     temps,
+					NumCores:        int32(coreCount),
+					FrequencyMhz:    float64(rawInfo.fCPUSpeed),
+					FsbFrequencyMhz: float64(rawInfo.fFSBSpeed),
+				},
+			},
+		},
 	}, nil
 }
 
@@ -111,10 +117,10 @@ func byteToBool(b byte) bool {
 	return b != 0
 }
 
-func intList[T uint32 | int32](input []T, size int) []int {
-	result := make([]int, size)
+func int32List[T uint32 | int32](input []T, size int) []int32 {
+	result := make([]int32, size)
 	for i := 0; i < int(size); i++ {
-		result[i] = int(input[i])
+		result[i] = int32(input[i])
 	}
 	return result
 }
@@ -219,7 +225,7 @@ func ensureCoreTempDLL() error {
 type coreTempSDKDriver struct {
 }
 
-func (d *coreTempSDKDriver) Get() (*common.HardwareInfo, error) {
+func (d *coreTempSDKDriver) Get() (*pb.MachineMetrics, error) {
 	return getCoreTempInfo()
 }
 

@@ -1,23 +1,22 @@
-load:
-    - 0
-    - 1
-    - 2
-    - 3
-tjMax:
-    - 1
-    - 1.5
-    - 2
-    - 2.5
-coreCount: 4
-cpuCount: 1
-temperatureCelcius:
-    - 1
-    - 4
-    - 65.4
-    - 78.9
-vid: 1.2
-cpuSpeed: 5000.2
-fsbSpeed: 100.4
-multiplier: 50.1
-cpuName: vermeer
-timestamp: 2020-01-01T01:02:03Z
+name: test
+device:
+    - name: vermeer
+      kind: cpu
+      temperature: 37.325
+      cpu:
+        load:
+            - 0
+            - 1
+            - 2
+            - 3
+        temperature:
+            - 1
+            - 4
+            - 65.4
+            - 78.9
+        numcores: 4
+        frequencymhz: 5000.2
+        fsbfrequencymhz: 100.4
+timestamp:
+    seconds: 1136214245
+    nanos: 0

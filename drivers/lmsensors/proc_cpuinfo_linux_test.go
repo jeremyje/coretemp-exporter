@@ -12,18 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package internal
+//go:build linux
+// +build linux
+
+package lmsensors
 
 import (
-	"context"
-	"log"
-
-	pb "github.com/jeremyje/coretemp-exporter/proto"
+	_ "embed"
+	"testing"
 )
 
-type consoleSink struct {
-}
-
-func (m *consoleSink) Observe(ctx context.Context, info *pb.MachineMetrics) {
-	log.Printf("%+v\n", info)
+func TestReadCPUInfo(t *testing.T) {
+	info, err := readCPUInfo()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.CPUName == "" {
+		t.Error("CPUName should not be empty")
+	}
 }

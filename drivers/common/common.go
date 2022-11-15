@@ -12,43 +12,49 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package internal
+// Package common contains all core structures and API for CoreTemp.
+package common
 
 import (
-	"context"
-	"encoding/json"
-	"log"
 	"os"
 
 	pb "github.com/jeremyje/coretemp-exporter/proto"
 )
 
-var (
-	newlineAsByte []byte = []byte("\n")
-)
-
-type fileSink struct {
-	fp *os.File
+type Driver interface {
+	Get() (*pb.MachineMetrics, error)
 }
 
-func newFileSink(name string) (*fileSink, error) {
-	fp, err := os.OpenFile(name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+func NotSupported(err error) Driver {
+	return &notSupportedDriver{
+		err: err,
+	}
+}
+
+type notSupportedDriver struct {
+	err error
+}
+
+func (n *notSupportedDriver) Get() (*pb.MachineMetrics, error) {
+	return nil, n.err
+}
+
+func Hostname() string {
+	name, err := os.Hostname()
 	if err != nil {
-		return nil, err
+		return "unknown"
 	}
-	return &fileSink{
-		fp: fp,
-	}, nil
+	return name
 }
 
-func (s *fileSink) Observe(ctx context.Context, info *pb.MachineMetrics) {
-	line, err := json.Marshal(info)
-	if err == nil {
-		if _, err := s.fp.Write(line); err != nil {
-			log.Printf("ERROR: %s", err)
-		}
-		if _, err := s.fp.Write(newlineAsByte); err != nil {
-			log.Printf("ERROR: %s", err)
-		}
+func Average(val []float64) float64 {
+	size := len(val)
+	if size == 0 {
+		return float64(0.0)
 	}
+	total := float64(0.0)
+	for _, v := range val {
+		total += v
+	}
+	return total / float64(size)
 }

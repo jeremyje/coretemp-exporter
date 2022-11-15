@@ -17,18 +17,18 @@ package internal
 import (
 	"context"
 
-	"github.com/jeremyje/coretemp-exporter/drivers/common"
+	pb "github.com/jeremyje/coretemp-exporter/proto"
 )
 
 type HardwareDataSink interface {
-	Observe(ctx context.Context, info *common.HardwareInfo)
+	Observe(ctx context.Context, info *pb.MachineMetrics)
 }
 
 type multiSink struct {
 	sinks []HardwareDataSink
 }
 
-func (m *multiSink) Observe(ctx context.Context, info *common.HardwareInfo) {
+func (m *multiSink) Observe(ctx context.Context, info *pb.MachineMetrics) {
 	for _, s := range m.sinks {
 		s.Observe(ctx, info)
 	}
