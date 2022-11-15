@@ -71,4 +71,5 @@ jobs:
         name: release.tar.gz
         path: |
           LICENSE
-          coretemp-exporter.exe
+          build/bin/linux_amd64/coretemp-exporter
+          build/bin/windows_amd64/coretemp-exporter.exe
