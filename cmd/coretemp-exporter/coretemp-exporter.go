@@ -25,7 +25,7 @@ import (
 var (
 	endpoint = flag.String("endpoint", ":8081", "Endpoint to serve metrics via HTTP.")
 	interval = flag.Duration("interval", time.Second, "Polling interval for temperature information")
-	logFile  = flag.String("log", "", "JSON logfile")
+	logFile  = flag.String("log", "", "ndjson (newline delimited json) log file")
 	console  = flag.Bool("console", true, "Indicates that records should be printed to console.")
 )
 

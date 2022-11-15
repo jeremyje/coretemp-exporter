@@ -58,7 +58,7 @@ coretemp-exporter.exe: cmd/coretemp-exporter/coretemp-exporter.go $(PROTOS)
 	CGO_ENABLED=1 GOOS=windows GOARCH=amd64 $(GO) build -o $@ $<
 
 run: cmd/coretemp-exporter/coretemp-exporter.go
-	$(GO) run cmd/coretemp-exporter/coretemp-exporter.go -log=cputemps.log
+	$(GO) run cmd/coretemp-exporter/coretemp-exporter.go -log=cputemps.ndjson
 
 lint:
 	$(GO) fmt ./...
