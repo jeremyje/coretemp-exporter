@@ -19,3 +19,4 @@
 *.log
 
 /coretemp-exporter
+build/
