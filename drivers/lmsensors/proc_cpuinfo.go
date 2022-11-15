@@ -18,22 +18,43 @@ import (
 	"bufio"
 	_ "embed"
 	"fmt"
+	"os"
+	"strconv"
 	"strings"
 )
 
+const (
+	cpuinfoFile = "/proc/cpuinfo"
+)
+
 type ProcCPUInfo struct {
-	VendorId string `json:"vendor_id"`
-	CPUName  string `json:"cpu_name"`
-	CoreId  string `json:"core_id"`
+	VendorId     string  `json:"vendor_id"`
+	CPUName      string  `json:"cpu_name"`
+	CoreId       string  `json:"core_id"`
+	FrequencyMhz float64 `json:"frequency"`
 }
 
-func parseCpuInfo(consoleOut []byte) (*ProcCPUInfo, error) {
+func readCPUInfo() (*ProcCPUInfo, error) {
+	data, err := os.ReadFile(cpuinfoFile)
+	if err != nil {
+		return nil, fmt.Errorf("cannot read '%s', err= %w", cpuinfoFile, err)
+	}
+	return parseCPUInfo(data)
+}
+
+func parseCPUInfo(consoleOut []byte) (*ProcCPUInfo, error) {
 	all := parseCpuInfoConsoleMaps(consoleOut)
 
 	for _, m := range all {
+		freqString := m["cpu MHz"]
+		freq, err := strconv.ParseFloat(freqString, 64)
+		if err == nil {
+			freq *= 1000 * 1000
+		}
 		return &ProcCPUInfo{
-			VendorId: m["vendor_id"],
-			CPUName:  m["model name"],
+			VendorId:     m["vendor_id"],
+			CPUName:      m["model name"],
+			FrequencyMhz: freq,
 		}, nil
 	}
 

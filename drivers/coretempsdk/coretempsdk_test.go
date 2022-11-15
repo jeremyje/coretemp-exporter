@@ -21,11 +21,11 @@ import (
 )
 
 func ExampleNew() {
-	info, err := New().Get()
+	mm, err := New().Get()
 	if err != nil {
 		fmt.Printf("ERROR: %s", err)
 	}
-	fmt.Printf("GetCoreTempInfo: %+v", info)
+	fmt.Printf("GetCoreTempInfo: %+v", mm)
 }
 
 func TestNew(t *testing.T) {
@@ -36,11 +36,11 @@ func TestNew(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	info, err := New().Get()
-	if err != nil && info != nil {
-		t.Error("HardwareInfo and error should NOT both be set at the same time.")
+	mm, err := New().Get()
+	if err != nil && mm != nil {
+		t.Error("MachineMetrics and error should NOT both be set at the same time.")
 	}
-	if err == nil && info == nil {
-		t.Error("HardwareInfo and error should NOT both be nil")
+	if err == nil && mm == nil {
+		t.Error("MachineMetrics and error should NOT both be nil")
 	}
 }

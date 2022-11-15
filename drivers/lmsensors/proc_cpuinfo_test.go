@@ -26,8 +26,8 @@ var (
 	cpuInfoTXT []byte
 )
 
-func TestParseCpuInfo(t *testing.T) {
-	data, err := parseCpuInfo(cpuInfoTXT)
+func TestParseCPUInfo(t *testing.T) {
+	data, err := parseCPUInfo(cpuInfoTXT)
 	if err != nil {
 		t.Fatal(err)
 	}

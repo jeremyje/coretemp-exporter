@@ -29,8 +29,9 @@ func main() {
 		log.Printf("ERROR: %s", err)
 		return
 	}
-	log.Printf("CPU: %s", info.CPUName)
-	log.Printf("Temperatures: %v", info.TemperatureCelcius)
+	log.Printf("Hostname: %s", info.Name)
+	log.Printf("CPU: %s", info.GetDevice()[0].Name)
+	log.Printf("Temperatures: %v", info.GetDevice()[0].GetTemperature())
 	data, err := json.Marshal(info)
 	if err != nil {
 		log.Printf("%+v", info)

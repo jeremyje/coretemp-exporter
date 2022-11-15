@@ -254,11 +254,11 @@
               },
               {
                 "color": "#EAB839",
-                "value": 3000000000
+                "value": 4000000000
               },
               {
                 "color": "red",
-                "value": 5000000000
+                "value": 4500000000
               }
             ]
           },
@@ -285,7 +285,7 @@
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
-      "pluginVersion": "9.2.1",
+      "pluginVersion": "9.2.4",
       "targets": [
         {
           "datasource": {
@@ -318,6 +318,6 @@
   "timezone": "",
   "title": "CPU",
   "uid": "RwtPEDHVz",
-  "version": 2,
+  "version": 1,
   "weekStart": ""
 }

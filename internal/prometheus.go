@@ -17,9 +17,8 @@ package internal
 import (
 	"context"
 	"net/http"
-	"os"
 
-	"github.com/jeremyje/coretemp-exporter/drivers/common"
+	pb "github.com/jeremyje/coretemp-exporter/proto"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -33,67 +32,57 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 )
 
-func getDefaultAttributes() []attribute.KeyValue {
-	hostname, err := os.Hostname()
-	if err != nil {
-		hostname = os.Getenv("COMPUTERNAME")
-	}
-
-	return []attribute.KeyValue{
-		attribute.Key("hostname").String(hostname),
-	}
-}
-
 type metricsSink struct {
-	CPUCoreTemperature    asyncfloat64.Gauge
-	CPUCoreLoad           asyncint64.Gauge
-	CPUThermalJunctionMax asyncfloat64.Gauge
-	CPUInfoPollCount      syncfloat64.Counter
-	CPUSpeed              asyncfloat64.Gauge
-	CPUMultiplier         asyncfloat64.Gauge
-	lastValue             *common.HardwareInfo
+	CPUCoreTemperature asyncfloat64.Gauge
+	CPUCoreLoad        asyncint64.Gauge
+	CPUInfoPollCount   syncfloat64.Counter
+	CPUFrequency       asyncfloat64.Gauge
+	CPUFSBFrequency    asyncfloat64.Gauge
+	lastValue          *pb.MachineMetrics
 }
 
 func (m *metricsSink) ObserveAsync(ctx context.Context) {
 	m.Observe(ctx, m.lastValue)
 }
 
-func (m *metricsSink) Observe(ctx context.Context, info *common.HardwareInfo) {
-	if info == nil {
+func (m *metricsSink) Observe(ctx context.Context, mm *pb.MachineMetrics) {
+	if mm == nil {
 		return
 	}
 
-	m.lastValue = info
-	attrs := getDefaultAttributes()
-	curAttrs := append(attrs, attribute.String("model", info.CPUName))
+	m.lastValue = mm
 
-	for core, tempC := range info.TemperatureCelcius {
-		m.CPUCoreTemperature.Observe(ctx, tempC, append(curAttrs, attribute.Int("core", core))...)
+	for _, device := range mm.GetDevice() {
+		attrs := []attribute.KeyValue{
+			attribute.Key("hostname").String(mm.GetName()),
+			attribute.Key("name").String(device.GetName()),
+			attribute.Key("kind").String(device.GetKind()),
+		}
+		curAttrs := attrs
+
+		if device.GetCpu() != nil {
+			cpuMetrics := device.GetCpu()
+			for core, tempC := range cpuMetrics.GetTemperature() {
+				m.CPUCoreTemperature.Observe(ctx, tempC, append(curAttrs, attribute.Int("core", core))...)
+			}
+			m.CPUInfoPollCount.Add(ctx, 1, curAttrs...)
+
+			m.CPUFrequency.Observe(ctx, cpuMetrics.GetFrequencyMhz()*1000*1000, append(
+				curAttrs,
+				attribute.Int("core_count", int(cpuMetrics.GetNumCores())),
+			)...)
+
+			m.CPUFSBFrequency.Observe(ctx, cpuMetrics.GetFsbFrequencyMhz()*1000*1000, append(
+				curAttrs,
+				attribute.Int("core_count", int(cpuMetrics.GetNumCores())),
+			)...)
+
+			for core, load := range cpuMetrics.GetLoad() {
+				m.CPUCoreLoad.Observe(ctx, int64(load), append(curAttrs, attribute.Int("core", core))...)
+			}
+		}
 	}
-	m.CPUInfoPollCount.Add(ctx, 1, curAttrs...)
 
-	m.CPUSpeed.Observe(ctx, info.CPUSpeed*1000*1000, append(
-		curAttrs,
-		attribute.Int("cpu_count", info.CPUCount),
-		attribute.Int("core_count", info.CoreCount),
-		attribute.Float64("fsb_speed", info.FSBSpeed),
-		attribute.Int("voltage", int(info.VID)),
-	)...)
-
-	m.CPUMultiplier.Observe(ctx, info.Multiplier, append(
-		curAttrs,
-		attribute.Int("cpu_count", info.CPUCount),
-		attribute.Int("core_count", info.CoreCount),
-		attribute.Float64("fsb_speed", info.FSBSpeed),
-		attribute.Int("voltage", int(info.VID)),
-	)...)
-
-	for core, load := range info.Load {
-		m.CPUCoreLoad.Observe(ctx, int64(load), append(curAttrs, attribute.Int("core", core))...)
-	}
-	for core, tjMax := range info.TJMax {
-		m.CPUThermalJunctionMax.Observe(ctx, tjMax, append(curAttrs, attribute.Int("core", core))...)
-	}
 }
 
 func newMetricsSink(ctx context.Context) (*metricsSink, http.Handler, error) {
@@ -124,33 +113,28 @@ func newMetrics(meter metric.Meter) (*metricsSink, error) {
 	if err != nil {
 		return nil, err
 	}
-	cpuThermalJunctionMax, err := meter.AsyncFloat64().Gauge("cpu_tj_max", instrument.WithDescription("CPU Load percentage (0-100)"), instrument.WithUnit("C"))
-	if err != nil {
-		return nil, err
-	}
 	cpuInfoPollCount, err := meter.SyncFloat64().Counter("cpu_core_poll", instrument.WithDescription("Number of times the CPU temperature has been polled."))
 	if err != nil {
 		return nil, err
 	}
-	cpuSpeed, err := meter.AsyncFloat64().Gauge("cpu_speed", instrument.WithDescription("CPU Core Speeds"))
+	cpuFrequency, err := meter.AsyncFloat64().Gauge("cpu_frequency", instrument.WithDescription("CPU Core Frequency"))
 	if err != nil {
 		return nil, err
 	}
-	cpuMultiplier, err := meter.AsyncFloat64().Gauge("cpu_multiplier", instrument.WithDescription("FSB Multiplier for the CPU."))
+	cpuFSBFrequency, err := meter.AsyncFloat64().Gauge("cpu_fsb_frequency", instrument.WithDescription("CPU Front Side Bus Frequency"))
 	if err != nil {
 		return nil, err
 	}
 
 	sink := &metricsSink{
-		CPUCoreTemperature:    cpuCoreTemperature,
-		CPUCoreLoad:           cpuCoreLoad,
-		CPUThermalJunctionMax: cpuThermalJunctionMax,
-		CPUInfoPollCount:      cpuInfoPollCount,
-		CPUSpeed:              cpuSpeed,
-		CPUMultiplier:         cpuMultiplier,
+		CPUCoreTemperature: cpuCoreTemperature,
+		CPUCoreLoad:        cpuCoreLoad,
+		CPUInfoPollCount:   cpuInfoPollCount,
+		CPUFrequency:       cpuFrequency,
+		CPUFSBFrequency:    cpuFSBFrequency,
 	}
 
-	meter.RegisterCallback([]instrument.Asynchronous{cpuCoreTemperature, cpuCoreLoad, cpuThermalJunctionMax, cpuSpeed, cpuMultiplier}, func(ctx context.Context) {
+	meter.RegisterCallback([]instrument.Asynchronous{cpuCoreTemperature, cpuCoreLoad, cpuFrequency, cpuFSBFrequency}, func(ctx context.Context) {
 		sink.ObserveAsync(ctx)
 	})
 
