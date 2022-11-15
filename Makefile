@@ -31,7 +31,7 @@ SOURCE_DIRS=$(shell go list ./... | grep -v '/vendor/')
 PROTOS = proto/hardware.pb.go
 
 ASSETS = $(PROTOS)
-NICHE_PLATFORMS = freebsd openbsd netbsd darwin
+NICHE_PLATFORMS =
 LINUX_PLATFORMS = linux_386 linux_amd64 linux_arm_v5 linux_arm_v6 linux_arm_v7 linux_arm64 linux_s390x linux_ppc64le linux_riscv64 linux_mips64le linux_mips linux_mipsle linux_mips64
 LINUX_NICHE_PLATFORMS = 
 WINDOWS_PLATFORMS = windows_386 windows_amd64
