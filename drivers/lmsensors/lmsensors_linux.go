@@ -35,7 +35,7 @@ type lmsensorsDriver struct {
 func (d *lmsensorsDriver) Get() (*pb.MachineMetrics, error) {
 	out, err := exec.Command("sensors", "-j").Output()
 	if err != nil {
-		return nil, fmt.Errorf("cannot run 'sensors' command, is it installed?\nout= %s\nerr= %w", out, err)
+		return nil, fmt.Errorf("cannot run 'sensors' command, is it installed or running in a VM?\nout= %s\nerr= %w", out, err)
 	}
 	data, err := fromJSON(out)
 	if err != nil {
