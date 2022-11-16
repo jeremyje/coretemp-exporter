@@ -16,7 +16,6 @@ package common
 
 import (
 	_ "embed"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
@@ -24,6 +23,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	pb "github.com/jeremyje/coretemp-exporter/proto"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gopkg.in/yaml.v3"
@@ -63,19 +63,19 @@ func TestBasic(t *testing.T) {
 	}
 
 	gotProto := &pb.MachineMetrics{}
-	if err := json.Unmarshal(wantJSON, gotProto); err != nil {
+	if err := protojson.Unmarshal(wantJSON, gotProto); err != nil {
 		t.Error(err)
 	}
 	if diff := cmp.Diff(want, gotProto, protocmp.Transform()); diff != "" {
-		t.Errorf("json.Unmarshal() mismatch (-want +got):\n%s", diff)
+		t.Errorf("protojson.Unmarshal() mismatch (-want +got):\n%s", diff)
 	}
-	if gotJSON, err := json.Marshal(want); err != nil {
+	if gotJSON, err := protojson.Marshal(want); err != nil {
 		t.Error(err)
 	} else {
 		gotJSON = nolinefeed(gotJSON)
 		if diff := cmp.Diff(wantJSON, gotJSON); diff != "" {
-			t.Logf("json.Marshal\n============\n%s", string(gotJSON))
-			t.Errorf("json.Marshal() mismatch (-want +got):\n%s", diff)
+			t.Logf("protojson.Marshal\n============\n%s", string(gotJSON))
+			t.Errorf("protojson.Marshal() mismatch (-want +got):\n%s", diff)
 		}
 	}
 	if gotYAML, err := yaml.Marshal(want); err != nil {
@@ -92,21 +92,21 @@ func TestBasic(t *testing.T) {
 func TestMarshalJSON(t *testing.T) {
 	data := &pb.MachineMetrics{}
 	want := nolinefeed(exampleJSON)
-	if err := json.Unmarshal(want, data); err != nil {
+	if err := protojson.Unmarshal(want, data); err != nil {
 		t.Error(err)
 	}
 	if diff := cmp.Diff([]int32{0, 1, 2, 3}, data.GetDevice()[0].GetCpu().GetLoad()); diff != "" {
-		t.Errorf("json.Unmarshal() mismatch (-want +got):\n%s", diff)
+		t.Errorf("protojson.Unmarshal() mismatch (-want +got):\n%s", diff)
 	}
-	m, err := json.Marshal(data)
+	m, err := protojson.Marshal(data)
 	if err != nil {
 		t.Error(err)
 	}
 
 	m = nolinefeed(m)
 	if diff := cmp.Diff(want, m); diff != "" {
-		t.Logf("json.Marshal\n============\n%s", string(m))
-		t.Errorf("json.Marshal() mismatch (-want +got):\n%s", diff)
+		t.Logf("protojson.Marshal\n============\n%s", string(m))
+		t.Errorf("protojson.Marshal() mismatch (-want +got):\n%s", diff)
 	}
 }
 

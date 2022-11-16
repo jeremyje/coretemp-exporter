@@ -16,9 +16,10 @@ package internal
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"os"
+
+	"google.golang.org/protobuf/encoding/protojson"
 
 	pb "github.com/jeremyje/coretemp-exporter/proto"
 )
@@ -42,7 +43,7 @@ func newFileSink(name string) (*fileSink, error) {
 }
 
 func (s *fileSink) Observe(ctx context.Context, info *pb.MachineMetrics) {
-	line, err := json.Marshal(info)
+	line, err := protojson.Marshal(info)
 	if err == nil {
 		if _, err := s.fp.Write(line); err != nil {
 			log.Printf("ERROR: %s", err)
