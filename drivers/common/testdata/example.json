@@ -1,1 +1,1 @@
-{"name":"test","device":[{"name":"vermeer","kind":"cpu","temperature":37.325,"cpu":{"load":[0,1,2,3],"temperature":[1,4,65.4,78.9],"num_cores":4,"frequency_mhz":5000.2,"fsb_frequency_mhz":100.4}}],"timestamp":{"seconds":1136214245}}
+{"name":"test","device":[{"name":"vermeer","kind":"cpu","temperature":37.325,"cpu":{"load":[0,1,2,3],"temperature":[1,4,65.4,78.9],"numCores":4,"frequencyMhz":5000.2,"fsbFrequencyMhz":100.4}}],"timestamp":"2006-01-02T15:04:05Z"}

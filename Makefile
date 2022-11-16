@@ -86,4 +86,7 @@ clean:
 	-chmod -R +w build/
 	rm -rf build/
 
+convert:
+	$(GO) run cmd/converter/converter.go
+
 .PHONY: all run lint test clean
