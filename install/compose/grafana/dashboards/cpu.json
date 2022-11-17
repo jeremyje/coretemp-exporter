@@ -97,7 +97,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 16,
+        "h": 29,
         "w": 12,
         "x": 0,
         "y": 0
@@ -268,8 +268,8 @@
       },
       "gridPos": {
         "h": 13,
-        "w": 12,
-        "x": 0,
+        "w": 6,
+        "x": 12,
         "y": 16
       },
       "id": 6,
@@ -293,13 +293,73 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "builder",
-          "expr": "cpu_speed",
-          "legendFormat": "{{model}}",
+          "expr": "cpu_frequency",
+          "legendFormat": "{{name}}",
           "range": true,
           "refId": "A"
         }
       ],
       "title": "CPU Speed",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "rothz"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 13,
+        "w": 6,
+        "x": 18,
+        "y": 16
+      },
+      "id": 8,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "9.2.4",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "editorMode": "builder",
+          "expr": "cpu_fsb_frequency",
+          "legendFormat": "Front Side Bus of {{name}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Front Side Bus Frequency",
       "type": "gauge"
     }
   ],
@@ -318,6 +378,6 @@
   "timezone": "",
   "title": "CPU",
   "uid": "RwtPEDHVz",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }
