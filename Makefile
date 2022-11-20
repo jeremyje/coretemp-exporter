@@ -28,6 +28,9 @@ export PATH := $(PWD)/build/toolchain/bin:$(PATH):/root/go/bin:/usr/local/go/bin
 GO = go
 SOURCE_DIRS=$(shell go list ./... | grep -v '/vendor/')
 
+REGISTRY = ghcr.io/jeremyje
+CORETEMP_EXPORTER_IMAGE = $(REGISTRY)/coretemp-exporter
+
 PROTOS = proto/hardware.pb.go
 
 ASSETS = $(PROTOS)
@@ -42,6 +45,9 @@ ALL_APPS = coretemp-exporter
 MAIN_BINARIES = $(foreach app,$(ALL_APPS),$(foreach platform,$(MAIN_PLATFORMS),build/bin/$(platform)/$(app)$(if $(findstring windows_,$(platform)),.exe,)))
 ALL_BINARIES = $(foreach app,$(ALL_APPS),$(foreach platform,$(ALL_PLATFORMS),build/bin/$(platform)/$(app)$(if $(findstring windows_,$(platform)),.exe,)))
 
+WINDOWS_VERSIONS = 1709 1803 1809 1903 1909 2004 20H2 ltsc2022
+BUILDX_BUILDER = buildx-builder
+
 binaries: $(MAIN_BINARIES)
 all: $(ALL_BINARIES)
 assets: $(ASSETS)
@@ -50,12 +56,6 @@ protos: $(PROTOS)
 build/bin/%: $(ASSETS)
 	GOOS=$(firstword $(subst _, ,$(notdir $(abspath $(dir $@))))) GOARCH=$(word 2, $(subst _, ,$(notdir $(abspath $(dir $@))))) GOARM=$(subst v,,$(word 3, $(subst _, ,$(notdir $(abspath $(dir $@)))))) CGO_ENABLED=0 $(GO) build -o $@ cmd/$(basename $(notdir $@))/$(basename $(notdir $@)).go
 	touch $@
-
-coretemp-exporter: cmd/coretemp-exporter/coretemp-exporter.go $(PROTOS)
-	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 $(GO) build -o $@ $<
-
-coretemp-exporter.exe: cmd/coretemp-exporter/coretemp-exporter.go $(PROTOS)
-	CGO_ENABLED=1 GOOS=windows GOARCH=amd64 $(GO) build -o $@ $<
 
 run: cmd/coretemp-exporter/coretemp-exporter.go
 	$(GO) run cmd/coretemp-exporter/coretemp-exporter.go -log=cputemps.ndjson -endpoint=:8080
@@ -79,9 +79,37 @@ coverage.txt:
 		fi; \
 	done
 
+ensure-builder:
+	-$(DOCKER) buildx create --name $(BUILDX_BUILDER)
+
+ALL_IMAGES = $(CORETEMP_EXPORTER_IMAGE) $(CERTTOOL_IMAGE) $(HTTPPROBE_IMAGE)
+# https://github.com/docker-library/official-images#architectures-other-than-amd64
+images: DOCKER_PUSH = --push
+images: linux-images windows-images
+	-$(DOCKER) manifest rm $(CORETEMP_EXPORTER_IMAGE):$(TAG)
+
+	for image in $(ALL_IMAGES) ; do \
+		$(DOCKER) manifest create $$image:$(TAG) $(foreach winver,$(WINDOWS_VERSIONS),$${image}:$(TAG)-windows_amd64-$(winver)) $(foreach platform,$(LINUX_PLATFORMS),$${image}:$(TAG)-$(platform)) ; \
+		for winver in $(WINDOWS_VERSIONS) ; do \
+			windows_version=`$(DOCKER) manifest inspect mcr.microsoft.com/windows/nanoserver:$${winver} | jq -r '.manifests[0].platform["os.version"]'`; \
+			$(DOCKER) manifest annotate --os-version $${windows_version} $${image}:$(TAG) $${image}:$(TAG)-windows_amd64-$${winver} ; \
+		done ; \
+		$(DOCKER) manifest push $$image:$(TAG) ; \
+	done
+
+ALL_LINUX_IMAGES = $(foreach app,$(ALL_APPS),$(foreach platform,$(LINUX_PLATFORMS),linux-image-$(app)-$(platform)))
+linux-images: $(ALL_LINUX_IMAGES)
+
+linux-image-coretemp-exporter-%: build/bin/%/coretemp-exporter ensure-builder
+	$(DOCKER) buildx build --builder $(BUILDX_BUILDER) --platform $(subst _,/,$*) --build-arg BINARY_PATH=$< -f cmd/coretemp-exporter/Dockerfile -t $(CORETEMP_EXPORTER_IMAGE):$(TAG)-$* . $(DOCKER_PUSH)
+
+ALL_WINDOWS_IMAGES = $(foreach app,$(ALL_APPS),$(foreach winver,$(WINDOWS_VERSIONS),windows-image-$(app)-$(winver)))
+windows-images: $(ALL_WINDOWS_IMAGES)
+
+windows-image-coretemp-exporter-%: build/bin/windows_amd64/coretemp-exporter.exe ensure-builder
+	$(DOCKER) buildx build --builder $(BUILDX_BUILDER) --platform windows/amd64 -f cmd/coretemp-exporter/Dockerfile.windows --build-arg WINDOWS_VERSION=$* -t $(CORETEMP_EXPORTER_IMAGE):$(TAG)-windows_amd64-$* . $(DOCKER_PUSH)
+
 clean:
-	rm -f coretemp-exporter
-	rm -f coretemp-exporter.exe
 	rm -f coverage.txt
 	-chmod -R +w build/
 	rm -rf build/
