@@ -16,14 +16,38 @@ package internal
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	pb "github.com/jeremyje/coretemp-exporter/proto"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 type consoleSink struct {
 }
 
-func (m *consoleSink) Observe(ctx context.Context, info *pb.MachineMetrics) {
-	log.Printf("%+v\n", info)
+func (s *consoleSink) Observe(ctx context.Context, info *pb.MachineMetrics) {
+	log.Println(s.toText(info))
+}
+
+func (s *consoleSink) toText(info *pb.MachineMetrics) string {
+	txt := ""
+
+	m := &protojson.MarshalOptions{
+		Multiline:       false,
+		Indent:          "",
+		AllowPartial:    false,
+		EmitUnpopulated: false,
+		UseProtoNames:   false,
+	}
+
+	if raw, err := m.Marshal(info); err == nil {
+		txt = string(raw)
+	} else {
+		txt = fmt.Sprintf("%+v", info)
+	}
+	if txt == "{}" {
+		return "<empty>"
+	}
+	return txt
 }
