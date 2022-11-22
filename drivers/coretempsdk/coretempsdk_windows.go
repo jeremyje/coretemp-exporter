@@ -30,6 +30,10 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+const (
+	enableAutoDownload = false
+)
+
 // https://www.alcpu.com/CoreTemp/developers.html
 
 type coreTempSharedDataEx struct {
@@ -209,6 +213,9 @@ func ensureCoreTempDLL() error {
 		if stat.Size() > 5000 {
 			return nil
 		}
+	}
+	if !enableAutoDownload {
+		return nil
 	}
 	zipData, err := common.DownloadFile(dllURIGetCoreTempInfoDLL)
 	if err != nil {
