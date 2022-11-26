@@ -23,7 +23,7 @@ func Main(f gomain.MainFunc) func() error {
 	errCh := make(chan error, 1)
 	runCtx := internal.NewRunCtx()
 	go func() {
-		errCh <- f(runCtx)
+		errCh <- f(runCtx.Wait)
 		close(errCh)
 	}()
 

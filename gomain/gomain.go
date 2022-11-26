@@ -15,7 +15,6 @@
 package gomain
 
 import (
-	"context"
 	"log"
 	"os"
 	"os/signal"
@@ -25,11 +24,10 @@ import (
 )
 
 type MainCtx interface {
-	AddKillFunc(func(context.Context) error)
 	Wait()
 }
 
-type MainFunc func(MainCtx) error
+type MainFunc func(func()) error
 
 type Config struct {
 	ServiceName        string
@@ -59,7 +57,7 @@ func runInteractive(f MainFunc) {
 	defer mc.Close()
 
 	go func() {
-		mainErrCh <- f(mc)
+		mainErrCh <- f(mc.Wait)
 		close(mainErrCh)
 	}()
 

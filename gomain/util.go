@@ -12,42 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build windows
-// +build windows
-
 package gomain
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 )
 
-func exePath() (string, error) {
+func exePath() string {
 	return exePathFromPath(os.Args[0])
 }
 
-func exePathFromPath(prog string) (string, error) {
-	p, err := filepath.Abs(prog)
+func exePathFromPath(firstArg string) string {
+	absPath, err := filepath.Abs(firstArg)
 	if err != nil {
-		return "", fmt.Errorf("cannot get the absolute path of '%s', err= %w", prog, err)
+		return firstArg
 	}
-	if fi, statErr := os.Stat(p); statErr == nil {
-		if !fi.Mode().IsDir() {
-			return p, nil
-		}
-		err = fmt.Errorf("%s is directory", p)
-	}
-	if filepath.Ext(p) == "" {
-		p += ".exe"
-
-		if fi, statErr := os.Stat(p); statErr == nil {
-			if !fi.Mode().IsDir() {
-				return p, nil
-			}
-			err = fmt.Errorf("%s is directory", p)
-		}
-	}
-	return "", err
-
+	return absPath
 }
