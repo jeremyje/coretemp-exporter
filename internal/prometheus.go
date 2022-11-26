@@ -86,20 +86,24 @@ func (m *metricsSink) Observe(ctx context.Context, mm *pb.MachineMetrics) {
 }
 
 func newMetricsSink(ctx context.Context) (*metricsSink, http.Handler, error) {
-	prometheusExporter := otelprom.New()
-	provider := sdkmetric.NewMeterProvider(sdkmetric.WithReader(prometheusExporter))
-	meter := provider.Meter("github.com/jeremyje/coretemp-exporter")
-	sink, err := newMetrics(meter)
-	if err != nil {
-		return nil, nil, err
-	}
 	registry := prometheus.NewRegistry()
 	registry.Register(collectors.NewBuildInfoCollector())
 	registry.Register(collectors.NewGoCollector())
 	registry.Register(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{
 		ReportErrors: true,
 	}))
-	registry.Register(prometheusExporter.Collector)
+
+	prometheusExporter, err := otelprom.New(otelprom.WithRegisterer(registry))
+	if err != nil {
+		return nil, nil, err
+	}
+	provider := sdkmetric.NewMeterProvider(sdkmetric.WithReader(prometheusExporter))
+	meter := provider.Meter("github.com/jeremyje/coretemp-exporter")
+	sink, err := newMetrics(meter)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
 	return sink, h, nil
 }
