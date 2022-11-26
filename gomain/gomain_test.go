@@ -15,8 +15,45 @@
 package gomain
 
 import (
+	"fmt"
+	"os"
+	"sync"
 	"testing"
+	"time"
 )
+
+var (
+	waitForeverFuncs = map[string]MainFunc{
+		"waitForeverFunc": func(wait func()) error {
+			wait()
+			return nil
+		},
+		"waitForeverFailingFunc": func(wait func()) error {
+			wait()
+			return fmt.Errorf("failed")
+		},
+	}
+
+	immediateMainFuncs = map[string]MainFunc{
+		"immediateReturnFunc": func(wait func()) error {
+			return nil
+		},
+		"immediateFailFunc": func(wait func()) error {
+			return fmt.Errorf("failed")
+		},
+	}
+)
+
+func getAllMainFuncs() map[string]MainFunc {
+	mains := map[string]MainFunc{}
+	for k, v := range waitForeverFuncs {
+		mains[k] = v
+	}
+	for k, v := range immediateMainFuncs {
+		mains[k] = v
+	}
+	return mains
+}
 
 func TestHandleSignalBase(t *testing.T) {
 	for _, tc := range handleSignalTestCases {
@@ -28,5 +65,77 @@ func TestHandleSignalBase(t *testing.T) {
 				t.Fatalf("expected: %t, got: %t", tc.want, got)
 			}
 		})
+	}
+}
+
+func TestRunInteractiveInternal(t *testing.T) {
+	for mainName, mainFunc := range getAllMainFuncs() {
+		mainFunc := mainFunc
+		for _, tc := range handleSignalTestCases {
+			tc := tc
+
+			t.Run(fmt.Sprintf("%s - %s", mainName, tc.input.String()), func(t *testing.T) {
+				t.Parallel()
+				sigCh := make(chan os.Signal, 1)
+
+				go func() {
+					time.Sleep(time.Millisecond * 100)
+					sigCh <- tc.input
+				}()
+
+				runInteractiveInternal(mainFunc, sigCh)
+			})
+		}
+	}
+}
+
+func TestRunInteractiveInternalAllSignals(t *testing.T) {
+	for mainName, mainFunc := range getAllMainFuncs() {
+		mainFunc := mainFunc
+		for _, signal := range getAllSignals() {
+			signal := signal
+
+			t.Run(fmt.Sprintf("%s - %s", mainName, signal.String()), func(t *testing.T) {
+				t.Parallel()
+				sigCh := make(chan os.Signal, 1)
+				var m sync.Mutex
+				closed := false
+				defer func() {
+					m.Lock()
+					closed = true
+					m.Unlock()
+					close(sigCh)
+				}()
+
+				go func() {
+					time.Sleep(time.Millisecond * 100)
+					m.Lock()
+					if !closed {
+						sigCh <- signal
+					}
+					m.Unlock()
+				}()
+
+				runInteractiveInternal(mainFunc, sigCh)
+			})
+		}
+	}
+}
+
+func TestRunInteractiveAllSignals(t *testing.T) {
+	for mainName, mainFunc := range immediateMainFuncs {
+		mainFunc := mainFunc
+		for _, signal := range getAllSignals() {
+			signal := signal
+			t.Run(fmt.Sprintf("%s - %s", mainName, signal), func(t *testing.T) {
+				t.Parallel()
+				runInteractive(mainFunc)
+			})
+
+			t.Run(fmt.Sprintf("%s - %s", mainName, signal), func(t *testing.T) {
+				t.Parallel()
+				Run(mainFunc, Config{})
+			})
+		}
 	}
 }

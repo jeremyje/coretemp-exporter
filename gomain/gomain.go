@@ -45,12 +45,15 @@ func getTerminalSignals() []os.Signal {
 
 func runInteractive(f MainFunc) {
 	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, getTerminalSignals()...)
 	defer func() {
 		signal.Stop(sigCh)
 		close(sigCh)
 	}()
+	runInteractiveInternal(f, sigCh)
+}
 
-	signal.Notify(sigCh, getTerminalSignals()...)
+func runInteractiveInternal(f MainFunc, sigCh chan os.Signal) {
 	mainErrCh := make(chan error, 1)
 
 	mc := internal.NewRunCtx()
