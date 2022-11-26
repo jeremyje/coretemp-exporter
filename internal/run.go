@@ -17,10 +17,12 @@ package internal
 import (
 	"context"
 	"log"
+	"net"
 	"net/http"
 	"time"
 
 	"github.com/jeremyje/coretemp-exporter/drivers"
+	"github.com/jeremyje/gomain"
 )
 
 type Args struct {
@@ -30,7 +32,16 @@ type Args struct {
 	Console  bool
 }
 
-func Run(args *Args) error {
+func Run(args *Args) {
+	gomain.Run(func(wait func()) error {
+		return run(args, wait)
+	}, gomain.Config{
+		ServiceName:        "coretemp-exporter",
+		ServiceDescription: "Reports CPU Core Temperatures to Prometheus",
+	})
+}
+
+func run(args *Args, wait func()) error {
 	var handler http.Handler
 	sinks := []HardwareDataSink{}
 	ctx := context.Background()
@@ -62,12 +73,6 @@ func Run(args *Args) error {
 
 	ticker := time.NewTicker(args.Interval)
 	done := make(chan bool)
-	defer func() {
-		ticker.Stop()
-		done <- true
-		close(done)
-	}()
-
 	go func() {
 		ctx := context.Background()
 
@@ -87,7 +92,26 @@ func Run(args *Args) error {
 		}
 	}()
 
-	waitFunc, _, err := serveAsync(ctx, args, handler)
-	waitFunc()
-	return err
+	addr := args.Endpoint
+	s := &http.Server{
+		Addr:    addr,
+		Handler: handler,
+	}
+
+	lis, err := net.Listen("tcp", addr)
+	if err != nil {
+		return err
+	}
+	log.Printf("Serving on %s", addr)
+
+	go func() {
+		wait()
+		ctx := context.Background()
+		s.Shutdown(ctx)
+		ticker.Stop()
+		done <- true
+		close(done)
+	}()
+
+	return s.Serve(lis)
 }

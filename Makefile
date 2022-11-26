@@ -25,7 +25,7 @@ BUILD_DATE = $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
 TAG := v$(VERSION)
 
 export PATH := $(PWD)/build/toolchain/bin:$(PATH):/root/go/bin:/usr/local/go/bin:/usr/go/bin
-GO = go
+GO = GOPRIVATE=github.com/jeremyje/gomain go
 SOURCE_DIRS=$(shell go list ./... | grep -v '/vendor/')
 
 REGISTRY = ghcr.io/jeremyje

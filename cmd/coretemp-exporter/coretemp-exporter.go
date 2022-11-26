@@ -16,7 +16,6 @@ package main
 
 import (
 	"flag"
-	"log"
 	"time"
 
 	"github.com/jeremyje/coretemp-exporter/internal"
@@ -32,12 +31,10 @@ var (
 func main() {
 	flag.Parse()
 
-	if err := internal.Run(&internal.Args{
+	internal.Run(&internal.Args{
 		Endpoint: *endpoint,
 		Interval: *interval,
 		Log:      *logFile,
 		Console:  *console,
-	}); err != nil {
-		log.Printf("%s", err)
-	}
+	})
 }
