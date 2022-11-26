@@ -72,10 +72,17 @@ func parseLmsensorsOutput(out []byte) (*pb.MachineMetrics, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	cpuName := "Unknown CPU"
-	cpuInfo, err := readCPUInfo()
-	if err == nil {
-		cpuName = cpuInfo.CPUName
+	frequency := float64(0.0)
+
+	// cpuInfo should not be read outside of this scope.
+	{
+		cpuInfo, err := readCPUInfo()
+		if err == nil {
+			cpuName = cpuInfo.CPUName
+			frequency = cpuInfo.FrequencyMhz
+		}
 	}
 
 	temperatures := []float64{}
@@ -123,7 +130,7 @@ func parseLmsensorsOutput(out []byte) (*pb.MachineMetrics, error) {
 					Load:         load,
 					Temperature:  temperatures,
 					NumCores:     int32(len(temperatures)),
-					FrequencyMhz: cpuInfo.FrequencyMhz,
+					FrequencyMhz: frequency,
 				},
 			}},
 	}, nil
