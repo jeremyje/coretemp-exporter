@@ -15,31 +15,21 @@
 package internal
 
 import (
-	"context"
-	"log"
 	"os"
 	"sync"
 )
 
 type RunCtx struct {
 	sync.RWMutex
-	waitCh    chan os.Signal
-	killFuncs []func(context.Context) error
-	closed    bool
+	waitCh chan os.Signal
+	closed bool
 }
 
 func NewRunCtx() *RunCtx {
 	return &RunCtx{
-		waitCh:    make(chan os.Signal, 1),
-		killFuncs: []func(context.Context) error{},
-		closed:    false,
+		waitCh: make(chan os.Signal, 1),
+		closed: false,
 	}
-}
-
-func (mc *RunCtx) AddKillFunc(f func(context.Context) error) {
-	mc.Lock()
-	mc.killFuncs = append(mc.killFuncs, f)
-	mc.Unlock()
 }
 
 func (mc *RunCtx) Kill() {
@@ -51,18 +41,6 @@ func (mc *RunCtx) Kill() {
 		return
 	}
 	mc.RUnlock()
-
-	mc.Lock()
-	killFuncs := mc.killFuncs
-	mc.killFuncs = nil
-	mc.Unlock()
-
-	ctx := context.Background()
-	for _, killFunc := range killFuncs {
-		if err := killFunc(ctx); err != nil {
-			log.Printf("Close Error: %s", err)
-		}
-	}
 }
 
 func (mc *RunCtx) Wait() {

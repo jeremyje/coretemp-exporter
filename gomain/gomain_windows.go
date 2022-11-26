@@ -86,10 +86,7 @@ func usage(errmsg string) {
 }
 
 func installService(name, desc string) error {
-	exepath, err := exePath()
-	if err != nil {
-		return err
-	}
+	exepath := exePath()
 	m, err := mgr.Connect()
 	if err != nil {
 		return err
@@ -198,7 +195,7 @@ func (ws *windowsService) Execute(args []string, r <-chan svc.ChangeRequest, cha
 
 	mainErrCh := make(chan error, 1)
 	go func() {
-		mainErrCh <- ws.f(mc)
+		mainErrCh <- ws.f(mc.Wait)
 	}()
 	defer close(mainErrCh)
 

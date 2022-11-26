@@ -29,7 +29,7 @@ func main() {
 	})
 }
 
-func appMain(mc gomain.MainCtx) error {
+func appMain(waitFunc func()) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(resp http.ResponseWriter, req *http.Request) {
 		resp.Write([]byte(req.URL.Path))
@@ -40,7 +40,7 @@ func appMain(mc gomain.MainCtx) error {
 	}
 
 	go func() {
-		mc.Wait()
+		waitFunc()
 		ctx := context.Background()
 		s.Shutdown(ctx)
 	}()

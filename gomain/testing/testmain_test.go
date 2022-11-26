@@ -16,15 +16,13 @@ package testing
 
 import (
 	"testing"
-
-	"github.com/jeremyje/coretemp-exporter/gomain"
 )
 
 func TestTestMainAsync(t *testing.T) {
 	ready := make(chan int)
-	m := func(mc gomain.MainCtx) error {
+	m := func(waitFunc func()) error {
 		ready <- 1
-		mc.Wait()
+		waitFunc()
 		return nil
 	}
 	close := Main(m)

@@ -15,24 +15,28 @@
 package gomain
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 )
 
 func TestExePathFromPath(t *testing.T) {
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
 	tests := []struct {
 		input string
 		want  string
 	}{
-		{input: "util_test.exe", want: "util_test.exe"},
+		{input: "util_test", want: filepath.Join(dir, "util_test")},
+		{input: "util_test.exe", want: filepath.Join(dir, "util_test.exe")},
 	}
 
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
-			got, err := exePathFromPath(tc.input)
-			if err != nil {
-				t.Fatal(err)
-			}
+			got := exePathFromPath(tc.input)
 			if got != tc.want {
 				t.Fatalf("expected: %v, got: %v", tc.want, got)
 			}
