@@ -37,8 +37,8 @@ var (
 )
 
 func TestBasic(t *testing.T) {
-	wantJSON := nolinefeed(exampleJSON)
-	wantYAML := nolinefeed(exampleYAML)
+	wantJSON := cleanJSON(exampleJSON)
+	wantYAML := noLF(exampleYAML)
 	ts, err := time.Parse(time.RFC3339, "2006-01-02T15:04:05Z")
 	if err != nil {
 		t.Fatal(err)
@@ -72,7 +72,7 @@ func TestBasic(t *testing.T) {
 	if gotJSON, err := protojson.Marshal(want); err != nil {
 		t.Error(err)
 	} else {
-		gotJSON = nolinefeed(gotJSON)
+		gotJSON = cleanJSON(gotJSON)
 		if diff := cmp.Diff(wantJSON, gotJSON); diff != "" {
 			t.Logf("protojson.Marshal\n============\n%s", string(gotJSON))
 			t.Errorf("protojson.Marshal() mismatch (-want +got):\n%s", diff)
@@ -81,7 +81,7 @@ func TestBasic(t *testing.T) {
 	if gotYAML, err := yaml.Marshal(want); err != nil {
 		t.Error(err)
 	} else {
-		gotYAML = nolinefeed(gotYAML)
+		gotYAML = noLF(gotYAML)
 		if diff := cmp.Diff(wantYAML, gotYAML); diff != "" {
 			t.Logf("yaml.Marshal\n============\n%s", string(gotYAML))
 			t.Errorf("yaml.Marshal() mismatch (-want +got):\n%s", diff)
@@ -91,7 +91,7 @@ func TestBasic(t *testing.T) {
 
 func TestMarshalJSON(t *testing.T) {
 	data := &pb.MachineMetrics{}
-	want := nolinefeed(exampleJSON)
+	want := cleanJSON(exampleJSON)
 	if err := protojson.Unmarshal(want, data); err != nil {
 		t.Error(err)
 	}
@@ -103,7 +103,7 @@ func TestMarshalJSON(t *testing.T) {
 		t.Error(err)
 	}
 
-	m = nolinefeed(m)
+	m = cleanJSON(m)
 	if diff := cmp.Diff(want, m); diff != "" {
 		t.Logf("protojson.Marshal\n============\n%s", string(m))
 		t.Errorf("protojson.Marshal() mismatch (-want +got):\n%s", diff)
@@ -111,7 +111,7 @@ func TestMarshalJSON(t *testing.T) {
 }
 
 func TestMarshalYAML(t *testing.T) {
-	want := nolinefeed(exampleYAML)
+	want := noLF(exampleYAML)
 	data := &pb.MachineMetrics{}
 	if err := yaml.Unmarshal(want, data); err != nil {
 		t.Error(err)
@@ -123,7 +123,7 @@ func TestMarshalYAML(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	m = nolinefeed(m)
+	m = noLF(m)
 	if diff := cmp.Diff(want, m); diff != "" {
 		t.Logf("yaml.Marshal() GOT\n============\n%s", string(m))
 		t.Logf("yaml.Marshal() WANT\n============\n%s", string(want))
@@ -163,6 +163,10 @@ func TestAverage(t *testing.T) {
 	}
 }
 
-func nolinefeed(data []byte) []byte {
+func noLF(data []byte) []byte {
 	return []byte(strings.ReplaceAll(string(data), "\r", ""))
+}
+
+func cleanJSON(data []byte) []byte {
+	return []byte(strings.ReplaceAll(string(noLF(data)), " ", ""))
 }
