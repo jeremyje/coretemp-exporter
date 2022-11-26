@@ -58,7 +58,7 @@ build/bin/%: $(ASSETS)
 	touch $@
 
 run: cmd/coretemp-exporter/coretemp-exporter.go
-	$(GO) run cmd/coretemp-exporter/coretemp-exporter.go -log=cputemps.ndjson -endpoint=:8080
+	$(GO) run cmd/coretemp-exporter/coretemp-exporter.go -log=cputemps.ndjson -endpoint=:8181
 
 run8081: cmd/coretemp-exporter/coretemp-exporter.go
 	$(GO) run cmd/coretemp-exporter/coretemp-exporter.go -log=cputemps.ndjson
