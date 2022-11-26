@@ -34,3 +34,42 @@ var (
 		{input: syscall.SIGABRT, want: true},
 	}
 )
+
+func getAllSignals() []os.Signal {
+	return []os.Signal{
+		syscall.SIGABRT,
+		syscall.SIGALRM,
+		syscall.SIGBUS,
+		syscall.SIGCHLD,
+		syscall.SIGCLD,
+		syscall.SIGCONT,
+		syscall.SIGFPE,
+		syscall.SIGHUP,
+		syscall.SIGILL,
+		syscall.SIGINT,
+		syscall.SIGIO,
+		syscall.SIGIOT,
+		syscall.SIGKILL,
+		syscall.SIGPIPE,
+		syscall.SIGPOLL,
+		syscall.SIGPROF,
+		syscall.SIGPWR,
+		syscall.SIGSEGV,
+		syscall.SIGSTKFLT,
+		syscall.SIGSTOP,
+		syscall.SIGSYS,
+		syscall.SIGTERM,
+		syscall.SIGTRAP,
+		syscall.SIGTSTP,
+		syscall.SIGTTIN,
+		syscall.SIGTTOU,
+		syscall.SIGUNUSED,
+		syscall.SIGURG,
+		syscall.SIGUSR1,
+		syscall.SIGUSR2,
+		syscall.SIGVTALRM,
+		syscall.SIGWINCH,
+		syscall.SIGXCPU,
+		syscall.SIGXFSZ,
+	}
+}
