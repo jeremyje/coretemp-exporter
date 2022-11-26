@@ -18,9 +18,14 @@ package lmsensors
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
+	"os"
+	"strconv"
 	"strings"
 
 	"github.com/jeremyje/coretemp-exporter/drivers/common"
+	pb "github.com/jeremyje/coretemp-exporter/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func New() common.Driver {
@@ -60,4 +65,66 @@ type LMsensor struct {
 
 type LMSensorTemperature struct {
 	M map[string]float64
+}
+
+func parseLmsensorsOutput(out []byte) (*pb.MachineMetrics, error) {
+	data, err := fromJSON(out)
+	if err != nil {
+		return nil, err
+	}
+	cpuName := "Unknown CPU"
+	cpuInfo, err := readCPUInfo()
+	if err == nil {
+		cpuName = cpuInfo.CPUName
+	}
+
+	temperatures := []float64{}
+	load := []int32{}
+	for sensorID, sensorDetail := range data.M {
+		if strings.Contains(sensorID, "coretemp") {
+			concreteSensorDetail, ok := sensorDetail.(map[string]any)
+			if ok {
+				adapterName := concreteSensorDetail["Adapter"]
+				if adapterName == "" {
+					adapterName = sensorID
+				}
+
+				for detailName, maybeTempDetail := range concreteSensorDetail {
+					if strings.Contains(detailName, "Package") {
+						continue
+					}
+					if concreteTempDetail, ok := maybeTempDetail.(map[string]any); ok {
+						for name, value := range concreteTempDetail {
+							if strings.Contains(name, "input") {
+								if s, err := strconv.ParseFloat(fmt.Sprintf("%v", value), 64); err == nil {
+									temperatures = append(temperatures, s)
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	hostname, err := os.Hostname()
+	if err != nil {
+		hostname = "unknown"
+	}
+	return &pb.MachineMetrics{
+		Name:      hostname,
+		Timestamp: timestamppb.Now(),
+		Device: []*pb.DeviceMetrics{
+			{
+				Name:        cpuName,
+				Kind:        "cpu",
+				Temperature: common.Average(temperatures),
+				Cpu: &pb.CpuDeviceMetrics{
+					Load:         load,
+					Temperature:  temperatures,
+					NumCores:     int32(len(temperatures)),
+					FrequencyMhz: cpuInfo.FrequencyMhz,
+				},
+			}},
+	}, nil
 }
