@@ -263,13 +263,5 @@ func runService(f MainFunc, name string, isDebug bool) {
 }
 
 func handleSignal(sig os.Signal) bool {
-	switch sig {
-	case os.Interrupt:
-		return true
-	case os.Kill:
-		logStackDump()
-		return true
-	default:
-		return false
-	}
+	return handleSignalBase(sig)
 }

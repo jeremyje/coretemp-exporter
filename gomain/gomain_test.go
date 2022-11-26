@@ -13,3 +13,20 @@
 // limitations under the License.
 
 package gomain
+
+import (
+	"testing"
+)
+
+func TestHandleSignalBase(t *testing.T) {
+	for _, tc := range handleSignalTestCases {
+		tc := tc
+		t.Run(tc.input.String(), func(t *testing.T) {
+			t.Parallel()
+			got := handleSignal(tc.input)
+			if got != tc.want {
+				t.Fatalf("expected: %t, got: %t", tc.want, got)
+			}
+		})
+	}
+}
