@@ -16,9 +16,10 @@ package internal
 
 import (
 	"testing"
+	"time"
 )
 
-func TestTestMainAsync(t *testing.T) {
+func TestNewRunCtx(t *testing.T) {
 	rCtx := NewRunCtx()
 
 	rCtx.Close()
@@ -29,4 +30,26 @@ func TestTestMainAsync(t *testing.T) {
 	rCtx.Close()
 	rCtx.Kill()
 	rCtx.Kill()
+}
+
+func TestWaitAfterKill(t *testing.T) {
+	rCtx := NewRunCtx()
+
+	rCtx.Kill()
+	rCtx.Close()
+	rCtx.Wait()
+}
+
+func TestWait(t *testing.T) {
+	rCtx := NewRunCtx()
+	done := make(chan bool, 1)
+
+	go func() {
+		rCtx.Wait()
+		done <- true
+	}()
+
+	time.Sleep(time.Millisecond * 100)
+	rCtx.Kill()
+	<-done
 }
