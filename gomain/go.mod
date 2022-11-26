@@ -1,4 +1,4 @@
-module github.com/jeremyje/coretemp-exporter/gomain
+module github.com/jeremyje/gomain
 
 go 1.19
 

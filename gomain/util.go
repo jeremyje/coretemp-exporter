@@ -23,10 +23,10 @@ func exePath() string {
 	return exePathFromPath(os.Args[0])
 }
 
-func exePathFromPath(firstArg string) string {
-	absPath, err := filepath.Abs(firstArg)
+func exePathFromPath(prog string) string {
+	absPath, err := filepath.Abs(prog)
 	if err != nil {
-		return firstArg
+		return prog
 	}
 	return absPath
 }

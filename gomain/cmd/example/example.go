@@ -18,7 +18,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/jeremyje/coretemp-exporter/gomain"
+	"github.com/jeremyje/gomain"
 )
 
 func main() {
