@@ -20,7 +20,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/jeremyje/coretemp-exporter/gomain/internal"
+	"github.com/jeremyje/gomain/internal"
 )
 
 type MainCtx interface {

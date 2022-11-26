@@ -20,6 +20,13 @@ import (
 	"testing"
 )
 
+func TestExePath(t *testing.T) {
+	ep := exePath()
+	if ep == "" {
+		t.Error("exePath() should not be empty")
+	}
+}
+
 func TestExePathFromPath(t *testing.T) {
 	dir, err := os.Getwd()
 	if err != nil {

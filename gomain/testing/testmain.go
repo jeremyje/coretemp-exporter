@@ -15,8 +15,8 @@
 package testing
 
 import (
-	"github.com/jeremyje/coretemp-exporter/gomain"
-	"github.com/jeremyje/coretemp-exporter/gomain/internal"
+	"github.com/jeremyje/gomain"
+	"github.com/jeremyje/gomain/internal"
 )
 
 func Main(f gomain.MainFunc) func() error {

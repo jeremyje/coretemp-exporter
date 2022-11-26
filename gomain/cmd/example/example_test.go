@@ -17,7 +17,7 @@ package main
 import (
 	"testing"
 
-	gomainTesting "github.com/jeremyje/coretemp-exporter/gomain/testing"
+	gomainTesting "github.com/jeremyje/gomain/testing"
 )
 
 func TestAppMain(t *testing.T) {

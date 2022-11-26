@@ -24,7 +24,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jeremyje/coretemp-exporter/gomain/internal"
+	"github.com/jeremyje/gomain/internal"
 	"golang.org/x/sys/windows/svc"
 	"golang.org/x/sys/windows/svc/debug"
 	"golang.org/x/sys/windows/svc/eventlog"
