@@ -261,3 +261,15 @@ func runService(f MainFunc, name string, isDebug bool) {
 	}
 	elog.Info(1, fmt.Sprintf("%s service stopped", name))
 }
+
+func handleSignal(sig os.Signal) bool {
+	switch sig {
+	case os.Interrupt:
+		return true
+	case os.Kill:
+		logStackDump()
+		return true
+	default:
+		return false
+	}
+}
