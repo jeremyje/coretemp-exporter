@@ -63,16 +63,13 @@ func runInteractive(f MainFunc) {
 
 	select {
 	case err := <-mainErrCh:
-		if err != nil {
-			log.Printf("ERROR: %s", err)
-		}
+		handleError(err)
 		return
 	case sig := <-sigCh:
-		if sig == syscall.SIGABRT {
-			logStackDump()
+		if handleSignal(sig) {
+			signal.Stop(sigCh)
+			mc.Kill()
 		}
-		signal.Stop(sigCh)
-		mc.Kill()
 	}
 }
 

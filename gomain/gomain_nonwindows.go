@@ -17,6 +17,28 @@
 
 package gomain
 
+import (
+	"os"
+	"syscall"
+)
+
 func platformRun(f MainFunc, cfg Config) {
 	runInteractive(f)
 }
+
+func handleSignal(sig os.Signal) bool {
+	switch sig {
+	case syscall.SIGUSR1:
+		logStackDump()
+		return false
+	case syscall.SIGABRT:
+		logStackDump()
+		return true
+
+	case syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL:
+		return true
+	default:
+		return false
+	}
+}
+
