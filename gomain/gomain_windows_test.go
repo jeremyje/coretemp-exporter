@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build !windows
-// +build !windows
+//go:build windows
+// +build windows
 
 package gomain
 
@@ -22,16 +22,14 @@ import (
 	"syscall"
 )
 
-func platformRun(f MainFunc, cfg Config) {
-	runInteractive(f)
-}
-
-func handleSignal(sig os.Signal) bool {
-	switch sig {
-	case syscall.SIGUSR1:
-		logStackDump()
-		return false
-	default:
-		return handleSignalBase(sig)
+var (
+	handleSignalTestCases = []struct {
+		input os.Signal
+		want  bool
+	}{
+		{input: syscall.SIGINT, want: true},
+		{input: syscall.SIGTERM, want: true},
+		{input: syscall.SIGKILL, want: true},
+		{input: syscall.SIGABRT, want: true},
 	}
-}
+)

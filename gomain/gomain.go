@@ -78,3 +78,15 @@ func handleError(err error) {
 		log.Printf("ERROR: %s", err)
 	}
 }
+
+func handleSignalBase(sig os.Signal) bool {
+	switch sig {
+	case syscall.SIGINT, syscall.SIGTERM:
+		return true
+	case syscall.SIGKILL, syscall.SIGABRT:
+		logStackDump()
+		return true
+	default:
+		return false
+	}
+}
