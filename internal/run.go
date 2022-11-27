@@ -26,10 +26,11 @@ import (
 )
 
 type Args struct {
-	Endpoint string
-	Interval time.Duration
-	Log      string
-	Console  bool
+	Endpoint              string
+	Interval              time.Duration
+	Log                   string
+	Console               bool
+	ServiceControlCommand string
 }
 
 func Run(args *Args) {
@@ -38,6 +39,7 @@ func Run(args *Args) {
 	}, gomain.Config{
 		ServiceName:        "coretemp-exporter",
 		ServiceDescription: "Reports CPU Core Temperatures to Prometheus",
+		Command:            args.ServiceControlCommand,
 	})
 }
 
