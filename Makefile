@@ -19,7 +19,7 @@ DOCKER = DOCKER_CLI_EXPERIMENTAL=enabled docker
 
 VERSION = $(shell git describe --tags)
 BUILD_DATE = $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
-TAG := v$(VERSION)
+TAG := $(VERSION)
 
 export PATH := $(PWD)/build/toolchain/bin:$(PATH):/root/go/bin:/usr/local/go/bin:/usr/go/bin
 GO = GOPRIVATE=github.com/jeremyje/gomain go
