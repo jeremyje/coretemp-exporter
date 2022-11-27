@@ -65,7 +65,10 @@ lint:
 	$(GO) vet ./...
 
 test:
-	$(GO) test -race ${SOURCE_DIRS} -cover
+	$(GO) test -race ${SOURCE_DIRS} -cover -count 50
+
+test-25:
+	$(GO) test -race ${SOURCE_DIRS} -cover -count 25
 
 coverage.txt:
 	for sfile in ${SOURCE_DIRS} ; do \
