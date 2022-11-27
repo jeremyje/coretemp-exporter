@@ -16,6 +16,7 @@ package main
 
 import (
 	"flag"
+	"runtime"
 	"time"
 
 	"github.com/jeremyje/coretemp-exporter/internal"
@@ -26,15 +27,23 @@ var (
 	interval = flag.Duration("interval", time.Second, "Polling interval for temperature information")
 	logFile  = flag.String("log", "", "ndjson (newline delimited json) log file")
 	console  = flag.Bool("console", true, "Indicates that records should be printed to console.")
+	svc      *string
 )
+
+func init() {
+	if runtime.GOOS == "windows" {
+		svc = flag.String("svc", "", "Service control mode")
+	}
+}
 
 func main() {
 	flag.Parse()
 
 	internal.Run(&internal.Args{
-		Endpoint: *endpoint,
-		Interval: *interval,
-		Log:      *logFile,
-		Console:  *console,
+		Endpoint:              *endpoint,
+		Interval:              *interval,
+		Log:                   *logFile,
+		Console:               *console,
+		ServiceControlCommand: *svc,
 	})
 }

@@ -208,7 +208,7 @@ func (ws *windowsService) Execute(args []string, r <-chan svc.ChangeRequest, cha
 			}
 		case err := <-mainErrCh:
 			if err != nil {
-				log.Printf("ERROR: %s", err)
+				elog.Error(1, err.Error())
 			}
 			done = true
 		}

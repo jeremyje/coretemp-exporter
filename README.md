@@ -41,10 +41,24 @@ sudo sensors-detect
 ### Windows
 
 1. Install and run [ALCPU CoreTemp](https://www.alcpu.com/CoreTemp/). It is important that this application is running otherwise you will not get any data.
+1. Run the commands below.
 
 ```powershell
-# Windows
+# Run in the console.
 .\build\windows_amd64\coretemp-exporter.exe
+
+###################
+# Windows Service #
+###################
+
+# Register Service
+.\build\windows_amd64\coretemp-exporter.exe -svc=install
+# Start Service
+.\build\windows_amd64\coretemp-exporter.exe -svc=start
+# Stop Service
+.\build\windows_amd64\coretemp-exporter.exe -svc=stop
+# Uninstall Service
+.\build\windows_amd64\coretemp-exporter.exe -svc=remove
 ```
 
 ## Dashboards
