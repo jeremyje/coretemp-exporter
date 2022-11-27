@@ -38,7 +38,7 @@ jobs:
     - name: Clean
       run: make clean
     - name: Test
-      run: make test
+      run: make test-25
     - name: Coverage
       run: make coverage.txt
     - name: Push Code Coverage

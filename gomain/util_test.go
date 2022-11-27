@@ -43,6 +43,8 @@ func TestExePathFromPath(t *testing.T) {
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
+			t.Parallel()
+
 			got := exePathFromPath(tc.input)
 			if got != tc.want {
 				t.Fatalf("expected: %v, got: %v", tc.want, got)

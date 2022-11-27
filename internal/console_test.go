@@ -67,6 +67,8 @@ func TestConsoleToText(t *testing.T) {
 	for _, tc := range tests {
 		tc := tc
 		t.Run(fmt.Sprintf("%+v", tc.input), func(t *testing.T) {
+			t.Parallel()
+
 			c := &consoleSink{}
 			// https://stackoverflow.com/questions/72359452/proto-unmarshal-test-fails-inconsistently
 			got := strings.ReplaceAll(c.toText(tc.input), " ", "")

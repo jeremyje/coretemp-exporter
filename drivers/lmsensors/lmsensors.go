@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -95,11 +96,16 @@ func parseLmsensorsOutput(out []byte) (*pb.MachineMetrics, error) {
 				if adapterName == "" {
 					adapterName = sensorID
 				}
-
-				for detailName, maybeTempDetail := range concreteSensorDetail {
+				keys := []string{}
+				for detailName := range concreteSensorDetail {
 					if strings.Contains(detailName, "Package") {
 						continue
 					}
+					keys = append(keys, detailName)
+				}
+				sort.Strings(keys)
+				for _, detailName := range keys {
+					maybeTempDetail := concreteSensorDetail[detailName]
 					if concreteTempDetail, ok := maybeTempDetail.(map[string]any); ok {
 						for name, value := range concreteTempDetail {
 							if strings.Contains(name, "input") {
