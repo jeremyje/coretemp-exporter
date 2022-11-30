@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/google/go-cmp v0.5.9
-	github.com/jeremyje/gomain v0.0.0-00010101000000-000000000000
+	github.com/jeremyje/gomain v0.1.2
 	github.com/prometheus/client_golang v1.14.0
 	go.opentelemetry.io/otel v1.11.1
 	go.opentelemetry.io/otel/exporters/prometheus v0.33.0
@@ -28,5 +28,3 @@ require (
 	go.opentelemetry.io/otel/sdk v1.11.1 // indirect
 	go.opentelemetry.io/otel/trace v1.11.1 // indirect
 )
-
-replace github.com/jeremyje/gomain => ./gomain
