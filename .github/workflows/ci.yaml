@@ -37,10 +37,13 @@ jobs:
 
     - name: Clean
       run: make clean
+
     - name: Test
       run: make test-25
+
     - name: Coverage
       run: make coverage.txt
+
     - name: Push Code Coverage
       uses: codecov/codecov-action@v3
       with:
@@ -60,7 +63,7 @@ jobs:
       uses: docker/login-action@v2
       with:
         registry: ghcr.io
-        username: ${{ github.repository_owner }}
+        username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Set up QEMU
@@ -71,16 +74,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       uses: docker/setup-buildx-action@v2
 
-    - name: Inspect builder
-      if: startsWith(github.ref, 'refs/tags/')
-      run: |
-        echo "Name:      ${{ steps.buildx.outputs.name }}"
-        echo "Endpoint:  ${{ steps.buildx.outputs.endpoint }}"
-        echo "Status:    ${{ steps.buildx.outputs.status }}"
-        echo "Flags:     ${{ steps.buildx.outputs.flags }}"
-        echo "Platforms: ${{ steps.buildx.outputs.platforms }}"
-        
-    - name: Create Release
+    - name: Build Images
       if: startsWith(github.ref, 'refs/tags/')
       run: make DOCKER_PUSH=--push images
 

@@ -17,7 +17,9 @@ include proto.mk
 GO = GO111MODULE=on go
 DOCKER = DOCKER_CLI_EXPERIMENTAL=enabled docker
 
-VERSION = $(shell git describe --tags)
+SHORT_SHA = $(shell git rev-parse --short=7 HEAD | tr -d [:punct:])
+DIRTY_VERSION = v0.0.0-$(SHORT_SHA)
+VERSION = $(shell git describe --tags || (echo $(DIRTY_VERSION) && exit 1))
 BUILD_DATE = $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
 TAG := $(VERSION)
 
@@ -44,6 +46,11 @@ ALL_BINARIES = $(foreach app,$(ALL_APPS),$(foreach platform,$(ALL_PLATFORMS),bui
 
 WINDOWS_VERSIONS = 1709 1803 1809 1903 1909 2004 20H2 ltsc2022
 BUILDX_BUILDER = buildx-builder
+ifeq ($(CI),true)
+	DOCKER_BUILDER_FLAG =
+else
+	DOCKER_BUILDER_FLAG = --builder $(BUILDX_BUILDER)
+endif
 
 binaries: $(MAIN_BINARIES)
 all: $(ALL_BINARIES)
@@ -65,7 +72,7 @@ lint:
 	$(GO) vet ./...
 
 test:
-	$(GO) test -race ${SOURCE_DIRS} -cover -count 50
+	$(GO) test -race ${SOURCE_DIRS} -cover
 
 test-25:
 	$(GO) test -race ${SOURCE_DIRS} -cover -count 25
@@ -80,9 +87,13 @@ coverage.txt:
 	done
 
 ensure-builder:
+ifeq ($(CI),true)
+	echo "Skipping creation of buildx context, running in CI."
+else
 	-$(DOCKER) buildx create --name $(BUILDX_BUILDER)
+endif
 
-ALL_IMAGES = $(CORETEMP_EXPORTER_IMAGE) $(CERTTOOL_IMAGE) $(HTTPPROBE_IMAGE)
+ALL_IMAGES = $(CORETEMP_EXPORTER_IMAGE)
 # https://github.com/docker-library/official-images#architectures-other-than-amd64
 images: DOCKER_PUSH = --push
 images: linux-images windows-images
@@ -101,13 +112,13 @@ ALL_LINUX_IMAGES = $(foreach app,$(ALL_APPS),$(foreach platform,$(LINUX_PLATFORM
 linux-images: $(ALL_LINUX_IMAGES)
 
 linux-image-coretemp-exporter-%: build/bin/%/coretemp-exporter ensure-builder
-	$(DOCKER) buildx build --builder $(BUILDX_BUILDER) --platform $(subst _,/,$*) --build-arg BINARY_PATH=$< -f cmd/coretemp-exporter/Dockerfile -t $(CORETEMP_EXPORTER_IMAGE):$(TAG)-$* . $(DOCKER_PUSH)
+	$(DOCKER) buildx build $(DOCKER_BUILDER_FLAG) --platform $(subst _,/,$*) --build-arg BINARY_PATH=$< -f cmd/coretemp-exporter/Dockerfile -t $(CORETEMP_EXPORTER_IMAGE):$(TAG)-$* . $(DOCKER_PUSH)
 
 ALL_WINDOWS_IMAGES = $(foreach app,$(ALL_APPS),$(foreach winver,$(WINDOWS_VERSIONS),windows-image-$(app)-$(winver)))
 windows-images: $(ALL_WINDOWS_IMAGES)
 
 windows-image-coretemp-exporter-%: build/bin/windows_amd64/coretemp-exporter.exe ensure-builder
-	$(DOCKER) buildx build --builder $(BUILDX_BUILDER) --platform windows/amd64 -f cmd/coretemp-exporter/Dockerfile.windows --build-arg WINDOWS_VERSION=$* -t $(CORETEMP_EXPORTER_IMAGE):$(TAG)-windows_amd64-$* . $(DOCKER_PUSH)
+	$(DOCKER) buildx build $(DOCKER_BUILDER_FLAG) --platform windows/amd64 -f cmd/coretemp-exporter/Dockerfile.windows --build-arg WINDOWS_VERSION=$* -t $(CORETEMP_EXPORTER_IMAGE):$(TAG)-windows_amd64-$* . $(DOCKER_PUSH)
 
 clean:
 	rm -f coverage.txt
