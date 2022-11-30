@@ -21,7 +21,7 @@ WORKDIR /app/
 COPY --chown=nonroot $BINARY_PATH /app/coretemp-exporter
 COPY --chown=nonroot LICENSE /app/LICENSE
 
-EXPOSE 80
+EXPOSE 8181
 ENTRYPOINT ["/app/coretemp-exporter"]
 
 # Standardized Docker Image Labels

@@ -20,7 +20,7 @@ COPY build/bin/windows_amd64/coretemp-exporter.exe /app/coretemp-exporter.exe
 COPY LICENSE /app/LICENSE
 
 USER ContainerUser
-EXPOSE 80
+EXPOSE 8181
 ENTRYPOINT ["/app/coretemp-exporter.exe"]
 
 # Standardized Docker Image Labels
