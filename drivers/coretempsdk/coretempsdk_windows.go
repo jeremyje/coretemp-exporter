@@ -97,7 +97,7 @@ func getCoreTempInfo() (*pb.MachineMetrics, error) {
 		Name:      common.Hostname(),
 		Timestamp: timestamppb.Now(),
 		Device: []*pb.DeviceMetrics{
-			&pb.DeviceMetrics{
+			{
 				Name:        cleanString(string(rawInfo.sCPUName[:])),
 				Kind:        "cpu",
 				Temperature: common.Average(temps),
