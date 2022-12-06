@@ -61,14 +61,6 @@ services:
     environment:
       - METRICS_STORAGE_TYPE=prometheus
       - PROMETHEUS_SERVER_URL=http://prometheus:9090
-  coretemp-exporter:
-    image: ghcr.io/jeremyje/coretemp-exporter:v0.5.1
-    hostname: coretemp-exporter
-    restart: always
-    networks:
-      - coretemp-net
-    ports:
-      - 8181:8181
 volumes:
   prom_data:
 networks:
