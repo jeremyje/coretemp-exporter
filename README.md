@@ -41,6 +41,7 @@ sudo sensors-detect
 ### Windows
 
 1. Install and run [ALCPU CoreTemp](https://www.alcpu.com/CoreTemp/). It is important that this application is running otherwise you will not get any data.
+1. Install [MSVC Runtime 10](https://learn.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist).
 1. Run the commands below.
 
 ```powershell

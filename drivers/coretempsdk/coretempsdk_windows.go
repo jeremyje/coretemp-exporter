@@ -30,7 +30,18 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+var (
+	globalFnGetCoreTempInfo *windows.LazyProc
+	globalLock              sync.RWMutex
+)
+
 const (
+	dllNameGetCoreTempInfoDLL            = "GetCoreTempInfo.dll"
+	dllFuncfnGetCoreTempInfoAlt          = "fnGetCoreTempInfoAlt"
+	dllURIGetCoreTempInfoDLLDownloadPage = "https://www.alcpu.com/CoreTemp/developers.html"
+	dllURIGetCoreTempInfoDLL             = "https://www.alcpu.com/CoreTemp/main_data/CoreTempSDK.zip"
+	vcRuntimeDownloadPage                = "https://learn.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist"
+
 	enableAutoDownload = false
 )
 
@@ -64,18 +75,6 @@ type coreTempSharedDataEx struct {
 	fPower           [128]float32
 	fMultipliers     [256]float32
 }
-
-var (
-	globalFnGetCoreTempInfo *windows.LazyProc
-	globalLock              sync.RWMutex
-)
-
-const (
-	dllNameGetCoreTempInfoDLL            = "GetCoreTempInfo.dll"
-	dllFuncfnGetCoreTempInfoAlt          = "fnGetCoreTempInfoAlt"
-	dllURIGetCoreTempInfoDLLDownloadPage = "https://www.alcpu.com/CoreTemp/developers.html"
-	dllURIGetCoreTempInfoDLL             = "https://www.alcpu.com/CoreTemp/main_data/CoreTempSDK.zip"
-)
 
 func getCoreTempInfo() (*pb.MachineMetrics, error) {
 	rawInfo, err := getCoreTempInfoAlt()
@@ -156,7 +155,7 @@ func wrapDLLError(err error) error {
 		dir = "."
 	}
 	return coreTempSDKError{
-		msg: fmt.Sprintf("Make sure that '%s' is in directory '%s'. And the version is at least 1.2.0.0. You can download the DLL from '%s'. Error= %s", dllNameGetCoreTempInfoDLL, dir, dllURIGetCoreTempInfoDLLDownloadPage, err.Error()),
+		msg: fmt.Sprintf("Make sure that '%s' is in directory '%s'. And the version is at least 1.2.0.0. You can download the DLL from '%s'. You also need VC++ Runtime 10 from '%s'. Error= %s", dllNameGetCoreTempInfoDLL, dir, dllURIGetCoreTempInfoDLLDownloadPage, vcRuntimeDownloadPage, err.Error()),
 		err: err,
 	}
 }
