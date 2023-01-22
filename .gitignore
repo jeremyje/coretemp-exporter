@@ -35,3 +35,7 @@
 /coretemp-exporter
 build/
 *.ndjson
+*.csv
+
+!internal/testdata/cputemps.csv
+!internal/testdata/cputemps.ndjson

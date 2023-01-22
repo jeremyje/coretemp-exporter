@@ -39,7 +39,7 @@ LINUX_NICHE_PLATFORMS =
 WINDOWS_PLATFORMS = windows_386 windows_amd64
 MAIN_PLATFORMS = windows_amd64 linux_amd64 linux_arm64
 ALL_PLATFORMS = $(LINUX_PLATFORMS) $(LINUX_NICHE_PLATFORMS) $(WINDOWS_PLATFORMS) $(foreach niche,$(NICHE_PLATFORMS),$(niche)_amd64 $(niche)_arm64)
-ALL_APPS = coretemp-exporter
+ALL_APPS = coretemp-exporter converter
 
 MAIN_BINARIES = $(foreach app,$(ALL_APPS),$(foreach platform,$(MAIN_PLATFORMS),build/bin/$(platform)/$(app)$(if $(findstring windows_,$(platform)),.exe,)))
 ALL_BINARIES = $(foreach app,$(ALL_APPS),$(foreach platform,$(ALL_PLATFORMS),build/bin/$(platform)/$(app)$(if $(findstring windows_,$(platform)),.exe,)))
@@ -126,6 +126,6 @@ clean:
 	rm -rf build/
 
 convert:
-	$(GO) run cmd/converter/converter.go
+	$(GO) run cmd/converter/converter.go -input=cputemps.ndjson -output=cputemps.csv -mode=csv
 
 .PHONY: all run lint test clean
