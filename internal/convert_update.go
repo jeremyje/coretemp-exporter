@@ -29,8 +29,8 @@ import (
 )
 
 type ConvertArgs struct {
-	OldFiles []string
-	NewFile  string
+	InputFiles []string
+	OutputFile string
 }
 
 // HardwareInfo includes CPU and motherboard information about the host machine.
@@ -60,15 +60,15 @@ type HardwareInfo struct {
 }
 
 func ConvertV1ToV2(args *ConvertArgs) error {
-	os.Remove(args.NewFile)
-	fp, err := os.Create(args.NewFile)
+	os.Remove(args.OutputFile)
+	fp, err := os.Create(args.OutputFile)
 	if err != nil {
 		return err
 	}
 	defer fp.Close()
 
 	ln := 0
-	for _, filename := range args.OldFiles {
+	for _, filename := range args.InputFiles {
 		log.Printf("OPEN %s", filename)
 		in, err := os.Open(filename)
 		if err != nil {

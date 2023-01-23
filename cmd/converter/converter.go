@@ -16,6 +16,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"strings"
 
@@ -23,15 +24,29 @@ import (
 )
 
 var (
-	oldFilesFlag = flag.String("old", "cputemps.log,cputemps.ndjson", "Comma separated list of old files.")
-	newFileFlag  = flag.String("new", "new.ndjson", "The new ndjson file")
+	inputFilesFlag = flag.String("input", "cputemps.log,cputemps.ndjson", "Comma separated list of old files.")
+	outputFileFlag = flag.String("output", "new.ndjson", "The new ndjson file")
+	modeFlag       = flag.String("mode", "csv", "Conversion mode (update, csv)")
 )
 
 func main() {
-	if err := internal.ConvertV1ToV2(&internal.ConvertArgs{
-		OldFiles: strings.Split(*oldFilesFlag, ","),
-		NewFile:  *newFileFlag,
-	}); err != nil {
+	flag.Parse()
+	var err error
+	switch *modeFlag {
+	case "csv":
+		err = internal.ConvertCSV(&internal.ConvertCSVArgs{
+			InputFile:  strings.Split(*inputFilesFlag, ","),
+			OutputFile: *outputFileFlag,
+		})
+	case "update":
+		err = internal.ConvertV1ToV2(&internal.ConvertArgs{
+			InputFiles: strings.Split(*inputFilesFlag, ","),
+			OutputFile: *outputFileFlag,
+		})
+	default:
+		err = fmt.Errorf("mode '%s' is not supported", *modeFlag)
+	}
+	if err != nil {
 		log.Fatal(err)
 	}
 }

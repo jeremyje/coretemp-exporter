@@ -89,6 +89,8 @@ jobs:
           LICENSE
           build/bin/linux_amd64/coretemp-exporter
           build/bin/windows_amd64/coretemp-exporter.exe
+          build/bin/linux_amd64/converter
+          build/bin/windows_amd64/converter.exe
 
     - name: Publish Application
       uses: actions/upload-artifact@v3
@@ -99,3 +101,5 @@ jobs:
           LICENSE
           build/bin/linux_amd64/coretemp-exporter
           build/bin/windows_amd64/coretemp-exporter.exe
+          build/bin/linux_amd64/converter
+          build/bin/windows_amd64/converter.exe

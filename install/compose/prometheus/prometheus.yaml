@@ -64,3 +64,5 @@ scrape_configs:
   - targets:
     - host.docker.internal:8181
     - coretemp-exporter:8181
+    # List any machines you'd like to monitor here.
+    - quartz:8181
