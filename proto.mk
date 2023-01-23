@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # https://github.com/protocolbuffers/protobuf/releases
-PROTOC_VERSION = 21.9
+PROTOC_VERSION = 21.12
 
 EXE = 
 FX_FIND = find
