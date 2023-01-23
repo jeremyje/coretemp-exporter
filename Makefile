@@ -39,7 +39,7 @@ LINUX_NICHE_PLATFORMS =
 WINDOWS_PLATFORMS = windows_386 windows_amd64
 MAIN_PLATFORMS = windows_amd64 linux_amd64 linux_arm64
 ALL_PLATFORMS = $(LINUX_PLATFORMS) $(LINUX_NICHE_PLATFORMS) $(WINDOWS_PLATFORMS) $(foreach niche,$(NICHE_PLATFORMS),$(niche)_amd64 $(niche)_arm64)
-ALL_APPS = coretemp-exporter converter
+ALL_APPS = coretemp-exporter coretemp-converter
 
 MAIN_BINARIES = $(foreach app,$(ALL_APPS),$(foreach platform,$(MAIN_PLATFORMS),build/bin/$(platform)/$(app)$(if $(findstring windows_,$(platform)),.exe,)))
 ALL_BINARIES = $(foreach app,$(ALL_APPS),$(foreach platform,$(ALL_PLATFORMS),build/bin/$(platform)/$(app)$(if $(findstring windows_,$(platform)),.exe,)))
@@ -110,15 +110,20 @@ images: linux-images windows-images
 
 ALL_LINUX_IMAGES = $(foreach app,$(ALL_APPS),$(foreach platform,$(LINUX_PLATFORMS),linux-image-$(app)-$(platform)))
 linux-images: $(ALL_LINUX_IMAGES)
+ALL_WINDOWS_IMAGES = $(foreach app,$(ALL_APPS),$(foreach winver,$(WINDOWS_VERSIONS),windows-image-$(app)-$(winver)))
+windows-images: $(ALL_WINDOWS_IMAGES)
 
 linux-image-coretemp-exporter-%: build/bin/%/coretemp-exporter ensure-builder
 	$(DOCKER) buildx build $(DOCKER_BUILDER_FLAG) --platform $(subst _,/,$*) --build-arg BINARY_PATH=$< -f cmd/coretemp-exporter/Dockerfile -t $(CORETEMP_EXPORTER_IMAGE):$(TAG)-$* . $(DOCKER_PUSH)
 
-ALL_WINDOWS_IMAGES = $(foreach app,$(ALL_APPS),$(foreach winver,$(WINDOWS_VERSIONS),windows-image-$(app)-$(winver)))
-windows-images: $(ALL_WINDOWS_IMAGES)
-
 windows-image-coretemp-exporter-%: build/bin/windows_amd64/coretemp-exporter.exe ensure-builder
 	$(DOCKER) buildx build $(DOCKER_BUILDER_FLAG) --platform windows/amd64 -f cmd/coretemp-exporter/Dockerfile.windows --build-arg WINDOWS_VERSION=$* -t $(CORETEMP_EXPORTER_IMAGE):$(TAG)-windows_amd64-$* . $(DOCKER_PUSH)
+
+linux-image-coretemp-converter-%: build/bin/%/coretemp-converter ensure-builder
+	$(DOCKER) buildx build $(DOCKER_BUILDER_FLAG) --platform $(subst _,/,$*) --build-arg BINARY_PATH=$< -f cmd/coretemp-converter/Dockerfile -t $(CORETEMP_EXPORTER_IMAGE):$(TAG)-$* . $(DOCKER_PUSH)
+
+windows-image-coretemp-converter-%: build/bin/windows_amd64/coretemp-converter.exe ensure-builder
+	$(DOCKER) buildx build $(DOCKER_BUILDER_FLAG) --platform windows/amd64 -f cmd/coretemp-converter/Dockerfile.windows --build-arg WINDOWS_VERSION=$* -t $(CORETEMP_EXPORTER_IMAGE):$(TAG)-windows_amd64-$* . $(DOCKER_PUSH)
 
 clean:
 	rm -f coverage.txt
@@ -126,6 +131,6 @@ clean:
 	rm -rf build/
 
 convert:
-	$(GO) run cmd/converter/converter.go -input=cputemps.ndjson -output=cputemps.csv -mode=csv
+	$(GO) run cmd/coretemp-converter/coretemp-converter.go -input=cputemps.ndjson -output=cputemps.csv -mode=csv
 
 .PHONY: all run lint test clean
