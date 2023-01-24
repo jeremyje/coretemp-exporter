@@ -29,6 +29,7 @@ SOURCE_DIRS=$(shell go list ./... | grep -v '/vendor/')
 
 REGISTRY = ghcr.io/jeremyje
 CORETEMP_EXPORTER_IMAGE = $(REGISTRY)/coretemp-exporter
+CORETEMP_CONVERTER_IMAGE = $(REGISTRY)/coretemp-converter
 
 PROTOS = proto/hardware.pb.go
 
@@ -93,11 +94,12 @@ else
 	-$(DOCKER) buildx create --name $(BUILDX_BUILDER)
 endif
 
-ALL_IMAGES = $(CORETEMP_EXPORTER_IMAGE)
+ALL_IMAGES = $(CORETEMP_EXPORTER_IMAGE) $(CORETEMP_CONVERTER_IMAGE)
 # https://github.com/docker-library/official-images#architectures-other-than-amd64
 images: DOCKER_PUSH = --push
 images: linux-images windows-images
 	-$(DOCKER) manifest rm $(CORETEMP_EXPORTER_IMAGE):$(TAG)
+	-$(DOCKER) manifest rm $(CORETEMP_CONVERTER_IMAGE):$(TAG)
 
 	for image in $(ALL_IMAGES) ; do \
 		$(DOCKER) manifest create $$image:$(TAG) $(foreach winver,$(WINDOWS_VERSIONS),$${image}:$(TAG)-windows_amd64-$(winver)) $(foreach platform,$(LINUX_PLATFORMS),$${image}:$(TAG)-$(platform)) ; \
@@ -120,10 +122,10 @@ windows-image-coretemp-exporter-%: build/bin/windows_amd64/coretemp-exporter.exe
 	$(DOCKER) buildx build $(DOCKER_BUILDER_FLAG) --platform windows/amd64 -f cmd/coretemp-exporter/Dockerfile.windows --build-arg WINDOWS_VERSION=$* -t $(CORETEMP_EXPORTER_IMAGE):$(TAG)-windows_amd64-$* . $(DOCKER_PUSH)
 
 linux-image-coretemp-converter-%: build/bin/%/coretemp-converter ensure-builder
-	$(DOCKER) buildx build $(DOCKER_BUILDER_FLAG) --platform $(subst _,/,$*) --build-arg BINARY_PATH=$< -f cmd/coretemp-converter/Dockerfile -t $(CORETEMP_EXPORTER_IMAGE):$(TAG)-$* . $(DOCKER_PUSH)
+	$(DOCKER) buildx build $(DOCKER_BUILDER_FLAG) --platform $(subst _,/,$*) --build-arg BINARY_PATH=$< -f cmd/coretemp-converter/Dockerfile -t $(CORETEMP_CONVERTER_IMAGE):$(TAG)-$* . $(DOCKER_PUSH)
 
 windows-image-coretemp-converter-%: build/bin/windows_amd64/coretemp-converter.exe ensure-builder
-	$(DOCKER) buildx build $(DOCKER_BUILDER_FLAG) --platform windows/amd64 -f cmd/coretemp-converter/Dockerfile.windows --build-arg WINDOWS_VERSION=$* -t $(CORETEMP_EXPORTER_IMAGE):$(TAG)-windows_amd64-$* . $(DOCKER_PUSH)
+	$(DOCKER) buildx build $(DOCKER_BUILDER_FLAG) --platform windows/amd64 -f cmd/coretemp-converter/Dockerfile.windows --build-arg WINDOWS_VERSION=$* -t $(CORETEMP_CONVERTER_IMAGE):$(TAG)-windows_amd64-$* . $(DOCKER_PUSH)
 
 clean:
 	rm -f coverage.txt
