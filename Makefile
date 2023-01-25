@@ -47,11 +47,7 @@ ALL_BINARIES = $(foreach app,$(ALL_APPS),$(foreach platform,$(ALL_PLATFORMS),bui
 
 WINDOWS_VERSIONS = 1709 1803 1809 1903 1909 2004 20H2 ltsc2022
 BUILDX_BUILDER = buildx-builder
-ifeq ($(CI),true)
-	DOCKER_BUILDER_FLAG =
-else
-	DOCKER_BUILDER_FLAG = --builder $(BUILDX_BUILDER)
-endif
+DOCKER_BUILDER_FLAG = --builder $(BUILDX_BUILDER)
 
 binaries: $(MAIN_BINARIES)
 all: $(ALL_BINARIES)
@@ -88,11 +84,7 @@ coverage.txt:
 	done
 
 ensure-builder:
-ifeq ($(CI),true)
-	echo "Skipping creation of buildx context, running in CI."
-else
 	-$(DOCKER) buildx create --name $(BUILDX_BUILDER)
-endif
 
 ALL_IMAGES = $(CORETEMP_EXPORTER_IMAGE) $(CORETEMP_CONVERTER_IMAGE)
 # https://github.com/docker-library/official-images#architectures-other-than-amd64
