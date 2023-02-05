@@ -8,7 +8,7 @@ require (
 	github.com/prometheus/client_golang v1.14.0
 	go.opentelemetry.io/otel v1.12.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.34.0
-	go.opentelemetry.io/otel/metric v0.34.0
+	go.opentelemetry.io/otel/metric v0.35.0
 	go.opentelemetry.io/otel/sdk/metric v0.34.0
 	golang.org/x/sys v0.4.0
 	google.golang.org/protobuf v1.28.1
