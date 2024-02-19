@@ -163,8 +163,8 @@ third_party/grpc_gateway/include/protoc-gen-openapiv2/LICENSE.txt: build/archive
 	(cd $(TOOLCHAIN_DIR)/grpc-gateway-temp/; unzip -q -o grpc-gateway.zip)
 	cp -rf $(TOOLCHAIN_DIR)/grpc-gateway-temp/grpc-gateway-main/protoc-gen-openapiv2/options/*.proto \
 		$(THIRDPARTY_DIR)/grpc_gateway/include/protoc-gen-openapiv2/options/
-	cp -f $(TOOLCHAIN_DIR)/grpc-gateway-temp/grpc-gateway-main/LICENSE.txt \
-		$(THIRDPARTY_DIR)/grpc_gateway/include/protoc-gen-openapiv2/LICENSE.txt
+	cp -f $(TOOLCHAIN_DIR)/grpc-gateway-temp/grpc-gateway-main/LICENSE \
+		$(THIRDPARTY_DIR)/grpc_gateway/include/protoc-gen-openapiv2/LICENSE
 	$(FX_FIND) $(THIRDPARTY_DIR)/grpc_gateway/include/protoc-gen-openapiv2/ -type f -name '*BUILD.bazel' -exec rm {} +
 	rm -rf $(TOOLCHAIN_DIR)/grpc-gateway-temp
 	touch $@

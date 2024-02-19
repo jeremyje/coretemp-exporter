@@ -83,7 +83,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       with:
         generate_release_notes: true
-        draft: false
+        draft: true
         prerelease: false
         files: |
           LICENSE
